@@ -1,0 +1,56 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'org.openjfx.javafxplugin' version "0.0.14"
+    id "com.github.johnrengelman.shadow" version "7.1.2"
+    id 'org.beryx.jlink' version '2.26.0'
+}
+
+group 'ru.ac.uniyar'
+version '1'
+
+application {
+    mainModule = 'ru.ac.uniyar.Simplex'
+    mainClass = 'ru.ac.uniyar.Simplex.Main'
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': application.mainClass
+    }
+}
+
+javafx {
+    version = 14
+    modules = ['javafx.controls', 'javafx.fxml']
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.assertj:assertj-core:3.24.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+jlink {
+    imageZip = project.file("${buildDir}/distributions/app-${javafx.platform.classifier}.zip")
+    options = ['--strip-debug', '--compress', '2', '--no-header-files', '--no-man-pages']
+    launcher {
+        name = 'Simplex'
+    }
+}
+
+jlinkZip {
+    group = 'distribution'
+}
