@@ -71,9 +71,7 @@ public class SimplexTable {
         this.n = n - m;
         this.m = m;
         this.func = func.clone();
-        Gauss gauss = new Gauss(n, m, table.clone());
-        gauss.calculateByVars(vars.clone());
-        this.table = gauss.getTableWithoutVars(vars.clone());
+        this.table = Gauss.transformTable(table, n, m, vars);
         colX = new int[n - m];
         rowX = new int[m];
         int col = 0;

@@ -3,57 +3,57 @@ package ru.ac.uniyar.Simplex.Utils;
 import java.util.Arrays;
 
 public class Gauss {
-    public int n;
-    public int m;
-    public Fraction[][] table;
-
-    public Gauss(int n, int m, Fraction[][] table) {
-        this.n = n;
-        this.m = m;
-        this.table = table;
-    }
-
-    public void divideRow(int row, Fraction divider) {
+    static public Fraction[][] divideRow(Fraction[][] table, int n, int row, Fraction divider) {
+        Fraction[][] newTable = table.clone();
         for (int j = 0; j <= n; j++) {
-            table[row][j] = Fraction.divide(table[row][j], divider);
+            newTable[row][j] = Fraction.divide(newTable[row][j], divider);
         }
+        return newTable;
     }
 
-    public void subtractionRowsWithMultiplier(int source, int dest, Fraction multiplier) {
+    static public Fraction[][] subtractionRowsWithMultiplier(Fraction[][] table, int n, int source, int dest, Fraction multiplier) {
+        Fraction[][] newTable = table.clone();
         for (int j = 0; j <= n; j++) {
-            table[dest][j] = Fraction.subtract(table[dest][j], Fraction.multiply(table[source][j], multiplier));
+            newTable[dest][j] = Fraction.subtract(newTable[dest][j], Fraction.multiply(newTable[source][j], multiplier));
         }
+        return newTable;
     }
 
-    public void switchRows(int row1, int row2) {
+    static public Fraction[][] switchRows(Fraction[][] table, int n, int row1, int row2) {
+        Fraction[][] newTable = table.clone();
         for (int j = 0; j <= n; j++) {
-            Fraction box = table[row1][j];
-            table[row1][j] = table[row2][j];
-            table[row2][j] = box;
+            Fraction box = newTable[row1][j];
+            newTable[row1][j] = newTable[row2][j];
+            newTable[row2][j] = box;
         }
+        return newTable;
     }
 
-    public void calculateByVars(int[] vars) {
+    static public Fraction[][] calculateByVars(Fraction[][] table, int n, int m, int[] vars) {
+        Fraction[][] newTable = table.clone();
         for (int j = 0; j < vars.length; j++) {
             int row = j;
-            while (row < m - 1 && Fraction.equals(table[row][vars[j]], Fraction.zero())) {
+            while (row < m - 1 && Fraction.equals(newTable[row][vars[j]], Fraction.zero())) {
                 row++;
             }
-            if (!Fraction.equals(table[row][vars[j]], Fraction.zero())) {
-                divideRow(row, table[row][vars[j]]);
+            if (!Fraction.equals(newTable[row][vars[j]], Fraction.zero())) {
+                newTable = divideRow(newTable, n, row, newTable[row][vars[j]]);
                 for (int i = 0; i < row; i++) {
-                    subtractionRowsWithMultiplier(row, i, table[i][vars[j]]);
+                    newTable = subtractionRowsWithMultiplier(newTable, n, row, i, newTable[i][vars[j]]);
                 }
                 for (int i = row + 1; i < m; i++) {
-                    subtractionRowsWithMultiplier(row, i, table[i][vars[j]]);
+                    newTable = subtractionRowsWithMultiplier(newTable, n, row, i, newTable[i][vars[j]]);
                 }
-                switchRows(row, j);
+                newTable = switchRows(newTable, n, row, j);
             }
         }
+        return newTable;
     }
 
-    public Fraction[][] getTableWithoutVars(int[] vars) {
-        Fraction[][] newTable = new Fraction[m + 1][n - vars.length + 1];
+    static public Fraction[][] transformTable(Fraction[][] table, int n, int m, int[] vars) {
+        Fraction[][] newTable = table.clone();
+        newTable = calculateByVars(newTable, n, m, vars);
+        Fraction[][] transformedTable = new Fraction[m + 1][n - vars.length + 1];
         int offset = 0;
         for (int j = 0; j <= n; j++) {
             int J = j;
@@ -61,10 +61,10 @@ public class Gauss {
                 offset++;
             } else {
                 for (int i = 0; i < m; i++) {
-                    newTable[i][j-offset] = table[i][j];
+                    transformedTable[i][j - offset] = newTable[i][j];
                 }
             }
         }
-        return newTable;
+        return transformedTable;
     }
 }
