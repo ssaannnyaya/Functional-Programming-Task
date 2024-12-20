@@ -196,18 +196,18 @@ public class SimplexTable {
      */
     public final void normalize(){
         for (int i = 0; i < m; i++){
-            if (table[i][n].lessThen(Fraction.zero())){
+            if (Fraction.firstIsLess(table[i][n], Fraction.zero())){
                 for (int j = 0; j <= n; j++){
-                    table[i][j] = table[i][j].negative();
+                    table[i][j] = Fraction.negative(table[i][j]);
                 }
             }
         }
         for (int j = 0; j <= n ;j++){
             Fraction sum = Fraction.zero();
             for (int i = 0; i < m; i++){
-                sum = sum.plus(table[i][j]);
+                sum = Fraction.add(sum, table[i][j]);
             }
-            table[m][j] = sum.negative();
+            table[m][j] = Fraction.negative(sum);
         }
     }
 
@@ -217,7 +217,7 @@ public class SimplexTable {
      */
     public boolean isSolved(){
         for (int j = 0; j < n; j++){
-            if (table[m][j].lessThen(Fraction.zero())){
+            if (Fraction.firstIsLess(table[m][j], Fraction.zero())){
                 return false;
             }
         }
@@ -232,7 +232,7 @@ public class SimplexTable {
         for (int j = 0; j < n; j++){
             boolean isColBad = true;
             for (int i = 0; i <= m; i++){
-                if (table[i][j].moreThen(Fraction.zero())){
+                if (Fraction.firstIsMore(table[i][j], Fraction.zero())){
                     isColBad = false;
                 }
             }
@@ -253,37 +253,37 @@ public class SimplexTable {
         colX[col] = rowX[row];
         rowX[row] = box;
 
-        table[row][col] = table[row][col].flip();
+        table[row][col] = Fraction.flip(table[row][col]);
 
         for (int j = 0; j < col; j++){
-            table[row][j] = table[row][j].multiply(table[row][col]);
+            table[row][j] = Fraction.multiply(table[row][j], table[row][col]);
         }
         for (int j = col + 1; j <= n; j++){
-            table[row][j] = table[row][j].multiply(table[row][col]);
+            table[row][j] = Fraction.multiply(table[row][j], table[row][col]);
         }
 
         for (int i = 0; i < row; i++){
             for (int j = 0; j < col; j++){
-                table[i][j] = table[i][j].minus(table[i][col].multiply(table[row][j]));
+                table[i][j] = Fraction.subtract(table[i][j], Fraction.multiply(table[i][col], table[row][j]));
             }
             for (int j = col + 1; j <= n; j++){
-                table[i][j] = table[i][j].minus(table[i][col].multiply(table[row][j]));
+                table[i][j] = Fraction.subtract(table[i][j], Fraction.multiply(table[i][col], table[row][j]));
             }
         }
         for (int i = row + 1; i <= m; i++){
             for (int j = 0; j < col; j++){
-                table[i][j] = table[i][j].minus(table[i][col].multiply(table[row][j]));
+                table[i][j] = Fraction.subtract(table[i][j], Fraction.multiply(table[i][col], table[row][j]));
             }
             for (int j = col + 1; j <= n; j++){
-                table[i][j] = table[i][j].minus(table[i][col].multiply(table[row][j]));
+                table[i][j] = Fraction.subtract(table[i][j], Fraction.multiply(table[i][col], table[row][j]));
             }
         }
 
         for (int i = 0; i < row; i++){
-            table[i][col] = table[i][col].multiply(table[row][col].negative());
+            table[i][col] = Fraction.multiply(table[i][col], Fraction.negative(table[row][col]));
         }
         for (int i = row + 1; i <= m; i++){
-            table[i][col] = table[i][col].multiply(table[row][col].negative());
+            table[i][col] = Fraction.multiply(table[i][col], Fraction.negative(table[row][col]));
         }
     }
 
@@ -294,7 +294,7 @@ public class SimplexTable {
     public int colForSimplexStep(){
         int col = 0;
         for (int j = 0; j < n; j++){
-            if (table[m][j].lessThen(table[m][col])){
+            if (Fraction.firstIsLess(table[m][j], table[m][col])){
                 col = j;
             }
         }
@@ -309,13 +309,13 @@ public class SimplexTable {
     public int rowForSimplexStep(int col){
         int row = 0;
         for (int i = 0; i < m; i++){
-            if (table[i][col].moreThen(Fraction.zero())) {
-                if (!table[row][col].moreThen(Fraction.zero())) {
+            if (Fraction.firstIsMore(table[i][col], Fraction.zero())) {
+                if (!Fraction.firstIsMore(table[row][col], Fraction.zero())) {
                     row = i;
                 } else {
-                    Fraction a = table[i][n].divide(table[i][col]);
-                    Fraction b = table[row][n].divide(table[row][col]);
-                    if (a.lessThen(b) || b.lessThen(Fraction.zero())) {
+                    Fraction a = Fraction.divide(table[i][n], table[i][col]);
+                    Fraction b = Fraction.divide(table[row][n], table[row][col]);
+                    if (Fraction.firstIsLess(a, b) || Fraction.firstIsLess(b, Fraction.zero())) {
                         row = i;
                     }
                 }
@@ -331,27 +331,27 @@ public class SimplexTable {
     public ArrayList<Integer[]> getPossibleElementsForStep() {
         ArrayList<Integer[]> possibleElements = new ArrayList<>();
         for (int j = 0; j < n; j++) {
-            if (table[m][j].lessThen(Fraction.zero())) {
+            if (Fraction.firstIsLess(table[m][j], Fraction.zero())) {
                 int row = 0;
                 for (int i = 0; i < m; i++) {
-                    if (table[i][j].moreThen(Fraction.zero())) {
-                        if (!table[row][j].moreThen(Fraction.zero())) {
+                    if (Fraction.firstIsMore(table[i][j], Fraction.zero())) {
+                        if (!Fraction.firstIsMore(table[row][j], Fraction.zero())) {
                             row = i;
                         } else {
-                            Fraction a = table[i][n].divide(table[i][j]);
-                            Fraction b = table[row][n].divide(table[row][j]);
-                            if (a.lessThen(b) || b.lessThen(Fraction.zero())) {
+                            Fraction a = Fraction.divide(table[i][n], table[i][j]);
+                            Fraction b = Fraction.divide(table[row][n], table[row][j]);
+                            if (Fraction.firstIsLess(a, b) || Fraction.firstIsLess(b, Fraction.zero())) {
                                 row = i;
                             }
                         }
                     }
                 }
                 for (int i = 0; i < m; i++) {
-                    if (table[i][j].moreThen(Fraction.zero()) && table[row][j].moreThen(Fraction.zero())) {
+                    if (Fraction.firstIsMore(table[i][j], Fraction.zero()) && Fraction.firstIsMore(table[row][j], Fraction.zero())) {
                         Integer[] element = new Integer[2];
-                        Fraction a = table[i][n].divide(table[i][j]);
-                        Fraction b = table[row][n].divide(table[row][j]);
-                        if (a.equals(b)) {
+                        Fraction a = Fraction.divide(table[i][n], table[i][j]);
+                        Fraction b = Fraction.divide(table[row][n], table[row][j]);
+                        if (Fraction.equals(a, b)) {
                             element[0] = i;
                             element[1] = j;
                             possibleElements.add(element);
@@ -433,21 +433,21 @@ public class SimplexTable {
             if (isMinimisation) {
                 newFunc[i] = func[i];
             } else {
-                newFunc[i] = func[i].negative();
+                newFunc[i] = Fraction.negative(func[i]);
             }
         }
         for (int j = 0; j < n; j++){                                        //считаем значения в нижней строке для переменных в заглавии столбцов
             Fraction a = newFunc[colX[j]];
             for (int i = 0; i < m; i++){
-                a = a.minus(newFunc[rowX[i]].multiply(table[i][j]));
+                a = Fraction.subtract(a, Fraction.multiply(newFunc[rowX[i]], table[i][j]));
             }
             table[m][j] = a;
         }
         Fraction a = newFunc[m + n];                                       //считаем значение в нижней левой ячейке
         for (int i = 0; i < m; i++){
-            a = a.plus(newFunc[rowX[i]].multiply(table[i][n]));
+            a = Fraction.add(a, Fraction.multiply(newFunc[rowX[i]], table[i][n]));
         }
-        table[m][n] = a.negative();
+        table[m][n] = Fraction.negative(a);
     }
 
     /**
@@ -456,7 +456,7 @@ public class SimplexTable {
      */
     public Fraction getAnswer(){
         if (isMinimisation){
-            return table[m][n].negative();
+            return Fraction.negative(table[m][n]);
         } else {
             return table[m][n];
         }
@@ -481,11 +481,11 @@ public class SimplexTable {
         }
         StringBuilder str = new StringBuilder("f(");
         Fraction[] vars = getAnswerAsArray();
-        str.append(vars[0].getFrString(isDecimal));
+        str.append(Fraction.getFrString(vars[0], isDecimal));
         for (int i = 1; i < n + m; i++) {
-            str.append(", ").append(vars[i].getFrString(isDecimal));
+            str.append(", ").append(Fraction.getFrString(vars[i], isDecimal));
         }
-        str.append(") = ").append(getAnswer().getFrString(isDecimal));
+        str.append(") = ").append(Fraction.getFrString(getAnswer(), isDecimal));
         return str.toString();
     }
 
@@ -505,23 +505,23 @@ public class SimplexTable {
 
     public String getFuncAsString(boolean isDecimal) {
         StringBuilder str = new StringBuilder();
-        if (!func[0].equals(Fraction.zero())) {
-            if (func[0].equals(Fraction.one().negative())) {
+        if (!Fraction.equals(func[0], Fraction.zero())) {
+            if (Fraction.equals(func[0], Fraction.negative(Fraction.one()))) {
                 str.append("-");
             } else {
-                if (!func[0].equals(Fraction.one())) {
-                    str.append(func[0].getFrString(isDecimal));
+                if (!Fraction.equals(func[0], Fraction.one())) {
+                    str.append(Fraction.getFrString(func[0], isDecimal));
                 }
             }
             str.append("x").append("\u2081");
         }
         for (int i = 1; i < func.length-1; i++) {
-            if (func[i].moreThen(Fraction.zero())) {
-                if (!func[i-1].equals(Fraction.zero())) {
+            if (Fraction.firstIsMore(func[i], Fraction.zero())) {
+                if (!Fraction.equals(func[i-1], Fraction.zero())) {
                     str.append("+");
                 }
-                if (!func[i].equals(Fraction.one())) {
-                    str.append(func[i].getFrString(isDecimal));
+                if (!Fraction.equals(func[i], Fraction.one())) {
+                    str.append(Fraction.getFrString(func[i], isDecimal));
                 }
                 if (i > 9){
                     str.append("x").append("\u2081").append((char) ('\u2080' + ((i + 1) % 10)));
@@ -529,11 +529,11 @@ public class SimplexTable {
                     str.append("x").append("").append((char) ('\u2080' + ((i + 1) % 10)));
                 }
             }
-            if (func[i].lessThen(Fraction.zero())) {
-                if (func[i].equals(Fraction.one().negative())) {
+            if (Fraction.firstIsLess(func[i], Fraction.zero())) {
+                if (Fraction.equals(func[i], Fraction.negative(Fraction.one()))) {
                     str.append("-");
                 } else {
-                    str.append(func[i].getFrString(isDecimal));
+                    str.append(Fraction.getFrString(func[i], isDecimal));
                 }
                 if (i > 9){
                     str.append("x").append("\u2081").append((char) ('\u2080' + ((i + 1) % 10)));
@@ -542,14 +542,14 @@ public class SimplexTable {
                 }
             }
         }
-        if (func[func.length - 1].moreThen(Fraction.zero())) {
-            if (func.length > 1 && !func[func.length-2].equals(Fraction.zero())) {
+        if (Fraction.firstIsMore(func[func.length - 1], Fraction.zero())) {
+            if (func.length > 1 && !Fraction.equals(func[func.length-2], Fraction.zero())) {
                 str.append("+");
             }
-            str.append(func[func.length - 1].getFrString(isDecimal));
+            str.append(Fraction.getFrString(func[func.length - 1], isDecimal));
         }
-        if (func[func.length - 1].lessThen(Fraction.zero())) {
-            str.append(func[func.length - 1].getFrString(isDecimal));
+        if (Fraction.firstIsLess(func[func.length - 1], Fraction.zero())) {
+            str.append(Fraction.getFrString(func[func.length - 1], isDecimal));
         }
         str.append(" --> ");
         if (isMinimisation){
@@ -587,9 +587,9 @@ public class SimplexTable {
     public String toString(){
         StringBuilder str = new StringBuilder(n + " " + m + " " + isMinimisation + "\n");
         for (int j = 0; j < func.length - 1; j++){
-            str.append(func[j].toString()).append(" ");
+            str.append(Fraction.toString(func[j])).append(" ");
         }
-        str.append(func[func.length - 1].toString()).append("\n");
+        str.append(Fraction.toString(func[func.length - 1])).append("\n");
         for (int j = 0; j < n - 1; j++){
             str.append(colX[j]).append(" ");
         }
@@ -597,14 +597,14 @@ public class SimplexTable {
         for (int i = 0; i < m; i++){
             str.append(rowX[i]).append(" ");
             for (int j = 0; j < n; j++){
-                str.append(table[i][j]).append(" ");
+                str.append(Fraction.toString(table[i][j])).append(" ");
             }
-            str.append(table[i][n]).append("\n");
+            str.append(Fraction.toString(table[i][n])).append("\n");
         }
         for (int j = 0; j < n; j++){
-            str.append(table[m][j]).append(" ");
+            str.append(Fraction.toString(table[m][j])).append(" ");
         }
-        str.append(table[m][n]).append("\n");
+        str.append(Fraction.toString(table[m][n])).append("\n");
         return str.toString();
     }
 

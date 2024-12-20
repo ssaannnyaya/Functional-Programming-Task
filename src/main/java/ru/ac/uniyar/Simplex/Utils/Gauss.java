@@ -15,13 +15,13 @@ public class Gauss {
 
     public void divideRow(int row, Fraction divider) {
         for (int j = 0; j <= n; j++) {
-            table[row][j] = table[row][j].divide(divider);
+            table[row][j] = Fraction.divide(table[row][j], divider);
         }
     }
 
     public void subtractionRowsWithMultiplier(int source, int dest, Fraction multiplier) {
         for (int j = 0; j <= n; j++) {
-            table[dest][j] = table[dest][j].minus(table[source][j].multiply(multiplier));
+            table[dest][j] = Fraction.subtract(table[dest][j], Fraction.multiply(table[source][j], multiplier));
         }
     }
 
@@ -36,10 +36,10 @@ public class Gauss {
     public void calculateByVars(int[] vars) {
         for (int j = 0; j < vars.length; j++) {
             int row = j;
-            while (row < m - 1 && table[row][vars[j]].equals(Fraction.zero())) {
+            while (row < m - 1 && Fraction.equals(table[row][vars[j]], Fraction.zero())) {
                 row++;
             }
-            if (!table[row][vars[j]].equals(Fraction.zero())) {
+            if (!Fraction.equals(table[row][vars[j]], Fraction.zero())) {
                 divideRow(row, table[row][vars[j]]);
                 for (int i = 0; i < row; i++) {
                     subtractionRowsWithMultiplier(row, i, table[i][vars[j]]);

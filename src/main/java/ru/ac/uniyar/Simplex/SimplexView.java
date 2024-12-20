@@ -12,6 +12,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
+import ru.ac.uniyar.Simplex.Utils.Fraction;
 import ru.ac.uniyar.Simplex.Utils.SimplexTable;
 import java.util.ArrayList;
 
@@ -200,7 +201,7 @@ public class SimplexView {
 
         for (int j = 0; j <= task.getN(); j++) {
             for (int i = 0; i <= task.getM(); i++) {
-                Label cell = new Label(task.getTable()[i][j].getFrString(isDecimal));
+                Label cell = new Label(Fraction.getFrString(task.getTable()[i][j], isDecimal));
                 GridPane.setHalignment(cell, HPos.CENTER);
                 GridPane.setValignment(cell, VPos.CENTER);
 
@@ -221,7 +222,7 @@ public class SimplexView {
                     createCenter();
                 });
 
-                Label cellForStep = new Label(task.getTable()[rowForStep][colForStep].getFrString(isDecimal));
+                Label cellForStep = new Label(Fraction.getFrString(task.getTable()[rowForStep][colForStep], isDecimal));
                 cellForStep.setOnMouseClicked(event -> {
                     curRow = element[0];
                     curCol = element[1];
@@ -247,7 +248,7 @@ public class SimplexView {
             Rectangle rectangle = new Rectangle(width, high);
             rectangle.setFill(Color.GREEN);
 
-            Label cellForStep = new Label(task.getTable()[rowForStep][colForStep].getFrString(isDecimal));
+            Label cellForStep = new Label(Fraction.getFrString(task.getTable()[rowForStep][colForStep], isDecimal));
             GridPane.setHalignment(cellForStep, HPos.CENTER);
             GridPane.setValignment(cellForStep, VPos.CENTER);
 
@@ -262,7 +263,7 @@ public class SimplexView {
                 Rectangle rectangle = new Rectangle(width, high);
                 rectangle.setFill(Color.CYAN);
 
-                Label cellForStep = new Label(task.getTable()[rowForStep][colForStep].getFrString(isDecimal));
+                Label cellForStep = new Label(Fraction.getFrString(task.getTable()[rowForStep][colForStep], isDecimal));
                 GridPane.setHalignment(cellForStep, HPos.CENTER);
                 GridPane.setValignment(cellForStep, VPos.CENTER);
 

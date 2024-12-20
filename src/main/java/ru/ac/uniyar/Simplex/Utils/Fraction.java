@@ -109,80 +109,89 @@ public class Fraction {
 
     /**
      * Домножает дробь на -1
-     * @return -FRACTION
+     * @param a дробь, знак которой нужно изменить
+     * @return -a
      */
-    public Fraction negative(){
-        return new Fraction(-num, denom);
+    static public Fraction negative(Fraction a){
+        return new Fraction(-a.num, a.denom);
     }
 
     /**
      * Переворачивает дробь
-     * @return 1/(изначальная дробь)
+     * @param a дробь, которую нужно перевернуть
+     * @return 1/(a)
      */
-    public Fraction flip(){
-        return new Fraction(denom, num);
+    static public Fraction flip(Fraction a){
+        return new Fraction(a.denom, a.num);
     }
 
     /**
-     * Прибавляет к текущей дроби другую
-     * @param a слагаемое
-     * @return сумма текущей дроби и дроби a
+     * Складывает дроби
+     * @param a первое слагаемое
+     * @param b второе слагаемое
+     * @return сумма дробей a и b
      */
-    public Fraction plus(Fraction a){
-        return new Fraction(this.num * a.denom + this.denom * a.num, this.denom * a.denom);
+    static public Fraction add(Fraction a, Fraction b){
+        return new Fraction(a.num * b.denom + a.denom * b.num, a.denom * b.denom);
     }
 
     /**
-     * Вычитает из текущей дроби другую
-     * @param a вычитаемое
-     * @return разность текущей дроби и дроби a
+     * Вычитает одну дробь из другой
+     * @param a уменьшаемое
+     * @param b вычитаемое
+     * @return разность дробей a и b
      */
-    public Fraction minus(Fraction a){
-        return plus(a.negative());
+    static public Fraction subtract(Fraction a, Fraction b){
+        return Fraction.add(a, Fraction.negative(b));
     }
 
     /**
-     * Перемножает текущую дробь с другой
-     * @param a множитель
-     * @return произведение текущей дроби и a
+     * Перемножает дроби
+     * @param a первый множитель
+     * @param b второй множитель
+     * @return произведение дробей a и b
      */
-    public Fraction multiply(Fraction a){
-        return new Fraction(this.num * a.num, this.denom * a.denom);
+    static public Fraction multiply(Fraction a, Fraction b){
+        return new Fraction(a.num * b.num, a.denom * b.denom);
     }
 
     /**
-     * Делит текущую дробь на другую
-     * @param a делитель
-     * @return частное текущей дроби и a
+     * Делит одну дробь на другую
+     * @param a делимое
+     * @param b делитель
+     * @return частное дробей a и b
      */
-    public Fraction divide(Fraction a){
-        return multiply(a.flip());
+    static public Fraction divide(Fraction a, Fraction b){
+        return multiply(a, Fraction.flip(b));
     }
 
     /**
-     * Сравнивает текущую дробь с другой
-     * @param a другая дробь
-     * @return true, если дробь a больше, чем текущая дробь, false - иначе
+     * Сравнивает дроби
+     * @param a дробь с которой сравнивают
+     * @param b другая дробь
+     * @return true, если дробь a больше, чем текущая b, false - иначе
      */
-    public boolean moreThen(Fraction a){
-        return (double) this.num / this.denom > (double) a.num / a.denom;
+    static public boolean firstIsMore(Fraction a, Fraction b){
+        return (double) a.num / a.denom > (double) b.num / b.denom;
     }
 
     /**
-     * Сравнивает текущую дробь с другой
-     * @param a другая дробь
-     * @return true, если дробь a меньше, чем текущая дробь, false - иначе
+     * Сравнивает дроби
+     * @param a дробь с которой сравнивают
+     * @param b другая дробь
+     * @return true, если дробь a меньше, чем b, false - иначе
      */
-    public boolean lessThen(Fraction a){
-        return (double) this.num / this.denom < (double) a.num / a.denom;
+    static public boolean firstIsLess(Fraction a, Fraction b){
+        return (double) a.num / a.denom < (double) b.num / b.denom;
     }
 
     /**
      * Переводит обычную дробь в десятичную
+     * @param a дробь, которую нужно перевести в десятичную
      * @return десятичная дробь, равная текущей с учётом погрешности
      */
-    public double toDecimal() {
-        return ((double) num) / denom;
+    static public double toDecimal(Fraction a) {
+        return ((double) a.num) / a.denom;
     }
 
     /**
@@ -190,26 +199,35 @@ public class Fraction {
      * @param isDecimal если true - результат в десятичном виде, false - в виде обыкновенной дроби
      * @return строка, содержащая дробь
      */
-    public String getFrString(boolean isDecimal) {
+    static public String getFrString(Fraction a, boolean isDecimal) {
 
         if (isDecimal) {
-            if (denom == 1) {
-                return String.format("%d", num);
+            if (a.denom == 1) {
+                return String.format("%d", a.num);
             } else {
-                return String.format("%.6s", toDecimal());
+                return String.format("%.6s", Fraction.toDecimal(a));
             }
         } else {
-            return toString();
+            return Fraction.toString(a);
         }
     }
 
-    @Override
-    public String toString(){
-        if (denom == 1) {
-            return String.valueOf(num);
+    static public String toString(Fraction a){
+        if (a.denom == 1) {
+            return String.valueOf(a.num);
         } else {
-            return num + "/" + denom;
+            return a.num + "/" + a.denom;
         }
+    }
+
+    /**
+     * Сравнивает дроби
+     * @param a первая дробь
+     * @param b вторая дробь
+     * @return true, если объект o является дробью и равен текущей дроби, false - иначе
+     */
+    static public boolean equals(Fraction a, Fraction b) {
+        return a.num == b.num && a.denom == b.denom;
     }
 
     /**
