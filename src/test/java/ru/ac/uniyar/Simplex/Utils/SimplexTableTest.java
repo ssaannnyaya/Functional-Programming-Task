@@ -89,7 +89,7 @@ public class SimplexTableTest {
         rowX[0] = 2;
         rowX[1] = 3;
         SimplexTable simplexTable = new SimplexTable(n, m, func, table, colX, rowX, true);
-        assertThat(simplexTable.isSolved()).isTrue();
+        assertThat(SimplexTable.isSolved(simplexTable.getTable(), simplexTable.getN(), simplexTable.getM())).isTrue();
     }
 
     @Test
@@ -117,7 +117,7 @@ public class SimplexTableTest {
         rowX[0] = 2;
         rowX[1] = 3;
         SimplexTable simplexTable = new SimplexTable(n, m, func, table, colX, rowX, true);
-        assertThat(simplexTable.isSolved()).isTrue();
+        assertThat(SimplexTable.isSolved(simplexTable.getTable(), simplexTable.getN(), simplexTable.getM())).isTrue();
     }
 
     @Test
@@ -145,7 +145,7 @@ public class SimplexTableTest {
         rowX[0] = 2;
         rowX[1] = 3;
         SimplexTable simplexTable = new SimplexTable(n, m, func, table, colX, rowX, true);
-        assertThat(simplexTable.isSolved()).isFalse();
+        assertThat(SimplexTable.isSolved(simplexTable.getTable(), simplexTable.getN(), simplexTable.getM())).isFalse();
     }
 
     @Test
@@ -173,7 +173,7 @@ public class SimplexTableTest {
         rowX[0] = 2;
         rowX[1] = 3;
         SimplexTable simplexTable = new SimplexTable(n, m, func, table, colX, rowX, true);
-        assertThat(simplexTable.hasSolution()).isTrue();
+        assertThat(SimplexTable.hasSolution(simplexTable.getTable(), simplexTable.getN(), simplexTable.getM())).isTrue();
     }
 
     @Test
@@ -201,7 +201,7 @@ public class SimplexTableTest {
         rowX[0] = 2;
         rowX[1] = 3;
         SimplexTable simplexTable = new SimplexTable(n, m, func, table, colX, rowX, true);
-        assertThat(simplexTable.hasSolution()).isFalse();
+        assertThat(SimplexTable.hasSolution(simplexTable.getTable(), simplexTable.getN(), simplexTable.getM())).isFalse();
     }
 
     @Test
@@ -300,7 +300,14 @@ public class SimplexTableTest {
         rowX2[1] = 0;
         SimplexTable simplexTable2 = new SimplexTable(n, m, func, table2, colX2, rowX2, true);
 
-        simplexTable1.simplexStep(1, 0);
+        simplexTable1 = SimplexTable.simplexStep(1, 0,
+                simplexTable1.getN(),
+                simplexTable1.getM(),
+                simplexTable1.getFunc(),
+                simplexTable1.getTable(),
+                simplexTable1.getColX(),
+                simplexTable1.getRowX(),
+                simplexTable1.isMinimisation());
         assertThat(simplexTable1.equals(simplexTable2)).isTrue();
     }
 
@@ -329,7 +336,10 @@ public class SimplexTableTest {
         rowX[0] = 2;
         rowX[1] = 3;
         SimplexTable simplexTable = new SimplexTable(n, m, func, table, colX, rowX, true);
-        int col = simplexTable.colForSimplexStep();
+        int col = SimplexTable.colForSimplexStep(
+                simplexTable.getTable(),
+                simplexTable.getN(),
+                simplexTable.getM());
         assertThat(col).isEqualTo(0);
     }
 
@@ -358,8 +368,15 @@ public class SimplexTableTest {
         rowX[0] = 2;
         rowX[1] = 3;
         SimplexTable simplexTable = new SimplexTable(n, m, func, table, colX, rowX, true);
-        int col = simplexTable.colForSimplexStep();
-        int row = simplexTable.rowForSimplexStep(col);
+        int col = SimplexTable.colForSimplexStep(
+                simplexTable.getTable(),
+                simplexTable.getN(),
+                simplexTable.getM());
+        int row = SimplexTable.rowForSimplexStep(
+                col,
+                simplexTable.getTable(),
+                simplexTable.getN(),
+                simplexTable.getM());
         assertThat(row).isEqualTo(1);
     }
 
@@ -407,7 +424,14 @@ public class SimplexTableTest {
         rowX2[1] = 0;
         SimplexTable simplexTable2 = new SimplexTable(n, m, func, table2, colX2, rowX2, true);
 
-        simplexTable1.simplexStep();
+        simplexTable1 = SimplexTable.simplexStep(
+                simplexTable1.getN(),
+                simplexTable1.getM(),
+                simplexTable1.getFunc(),
+                simplexTable1.getTable(),
+                simplexTable1.getColX(),
+                simplexTable1.getRowX(),
+                simplexTable1.isMinimisation());
         assertThat(simplexTable1.equals(simplexTable2)).isTrue();
     }
 
@@ -479,7 +503,7 @@ public class SimplexTableTest {
         rowX[0] = 1;
         rowX[1] = -3;
         SimplexTable simplexTable = new SimplexTable(n, m, func, table, colX, rowX, true);
-        assertThat(simplexTable.hasAdditionalVars()).isTrue();
+        assertThat(SimplexTable.hasAdditionalVars(colX, rowX)).isTrue();
     }
 
     @Test
@@ -507,7 +531,7 @@ public class SimplexTableTest {
         rowX[0] = 1;
         rowX[1] = 3;
         SimplexTable simplexTable = new SimplexTable(n, m, func, table, colX, rowX, true);
-        assertThat(simplexTable.hasAdditionalVars()).isFalse();
+        assertThat(SimplexTable.hasAdditionalVars(colX, rowX)).isFalse();
     }
 
     @Test
@@ -535,7 +559,7 @@ public class SimplexTableTest {
         rowX[0] = 1;
         rowX[1] = 2;
         SimplexTable simplexTable = new SimplexTable(n, m, func, table, colX, rowX, true);
-        assertThat(simplexTable.findAdditionalVarColumn()).isEqualTo(1);
+        assertThat(SimplexTable.findAdditionalVarColumn(simplexTable.getColX(), simplexTable.getN())).isEqualTo(1);
     }
 
     @Test
@@ -563,7 +587,7 @@ public class SimplexTableTest {
         rowX[0] = 1;
         rowX[1] = 2;
         SimplexTable simplexTable = new SimplexTable(n, m, func, table, colX, rowX, true);
-        assertThat(simplexTable.findAdditionalVarColumn()).isEqualTo(-1);
+        assertThat(SimplexTable.findAdditionalVarColumn(simplexTable.getColX(), simplexTable.getN())).isEqualTo(-1);
     }
 
     @Test
@@ -612,7 +636,15 @@ public class SimplexTableTest {
         rowX2[1] = 0;
         SimplexTable simplexTable2 = new SimplexTable(n, m, func, table2, colX2, rowX2, true);
 
-        simplexTable1.toMainTask();
+        simplexTable1 = SimplexTable.toMainTask(
+                simplexTable1.getN(),
+                simplexTable1.getM(),
+                simplexTable1.getFunc(),
+                simplexTable1.getTable(),
+                simplexTable1.getColX(),
+                simplexTable1.getRowX(),
+                simplexTable1.isMinimisation()
+        );
         assertThat(simplexTable1).isEqualTo(simplexTable2);
     }
 
@@ -662,7 +694,15 @@ public class SimplexTableTest {
         rowX2[1] = 3;
         SimplexTable simplexTable2 = new SimplexTable(n2 - 1, m2, func2, table2, colX2, rowX2, true);
 
-        simplexTable1.removeCol(1);
+        simplexTable1 = SimplexTable.removeCol(
+                simplexTable1.getN(),
+                simplexTable1.getM(),
+                simplexTable1.getFunc(),
+                simplexTable1.getTable(),
+                simplexTable1.getColX(),
+                simplexTable1.getRowX(),
+                simplexTable1.isMinimisation(),
+                1);
         assertThat(simplexTable1).isEqualTo(simplexTable2);
     }
 
@@ -689,16 +729,48 @@ public class SimplexTableTest {
         table1[1][4] = new Fraction("4");
         SimplexTable simplexTable1 = new SimplexTable(n1, m1, func1, table1, true);
 
-        while (!simplexTable1.isSolved() && simplexTable1.hasSolution() && simplexTable1.hasAdditionalVars()){
-            simplexTable1.simplexStep();
-            int additionalVarColumn = simplexTable1.findAdditionalVarColumn();
+        while (!SimplexTable.isSolved(simplexTable1.getTable(), simplexTable1.getN(), simplexTable1.getM())
+                && SimplexTable.hasSolution(simplexTable1.getTable(), simplexTable1.getN(), simplexTable1.getM())
+                && SimplexTable.hasAdditionalVars(simplexTable1.getColX(), simplexTable1.getRowX())){
+            simplexTable1 = SimplexTable.simplexStep(
+                    simplexTable1.getN(),
+                    simplexTable1.getM(),
+                    simplexTable1.getFunc(),
+                    simplexTable1.getTable(),
+                    simplexTable1.getColX(),
+                    simplexTable1.getRowX(),
+                    simplexTable1.isMinimisation());
+            int additionalVarColumn = SimplexTable.findAdditionalVarColumn(simplexTable1.getColX(), simplexTable1.getN());
             if (additionalVarColumn != -1){
-                simplexTable1.removeCol(additionalVarColumn);
+                simplexTable1 = SimplexTable.removeCol(
+                        simplexTable1.getN(),
+                        simplexTable1.getM(),
+                        simplexTable1.getFunc(),
+                        simplexTable1.getTable(),
+                        simplexTable1.getColX(),
+                        simplexTable1.getRowX(),
+                        simplexTable1.isMinimisation(),
+                        additionalVarColumn);
             }
         }
-        simplexTable1.toMainTask();
-        while (!simplexTable1.isSolved() && simplexTable1.hasSolution()){
-            simplexTable1.simplexStep();
+        simplexTable1 = SimplexTable.toMainTask(
+                simplexTable1.getN(),
+                simplexTable1.getM(),
+                simplexTable1.getFunc(),
+                simplexTable1.getTable(),
+                simplexTable1.getColX(),
+                simplexTable1.getRowX(),
+                simplexTable1.isMinimisation());
+        while (!SimplexTable.isSolved(simplexTable1.getTable(), simplexTable1.getN(), simplexTable1.getM())
+                && SimplexTable.hasSolution(simplexTable1.getTable(), simplexTable1.getN(), simplexTable1.getM())){
+            simplexTable1 = SimplexTable.simplexStep(
+                    simplexTable1.getN(),
+                    simplexTable1.getM(),
+                    simplexTable1.getFunc(),
+                    simplexTable1.getTable(),
+                    simplexTable1.getColX(),
+                    simplexTable1.getRowX(),
+                    simplexTable1.isMinimisation());
         }
         assertThat(simplexTable1.getAnswer()).isEqualTo(new Fraction("1/3"));
     }
@@ -735,16 +807,48 @@ public class SimplexTableTest {
         table[2][5] = new Fraction("12");
         SimplexTable simplexTable = new SimplexTable(n, m, func, table, true);
 
-        while (!simplexTable.isSolved() && simplexTable.hasSolution() && simplexTable.hasAdditionalVars()){
-            simplexTable.simplexStep();
-            int additionalVarColumn = simplexTable.findAdditionalVarColumn();
+        while (!SimplexTable.isSolved(simplexTable.getTable(), simplexTable.getN(), simplexTable.getM())
+                && SimplexTable.hasSolution(simplexTable.getTable(), simplexTable.getN(), simplexTable.getM())
+                && SimplexTable.hasAdditionalVars(simplexTable.getColX(), simplexTable.getRowX())){
+            simplexTable = SimplexTable.simplexStep(
+                    simplexTable.getN(),
+                    simplexTable.getM(),
+                    simplexTable.getFunc(),
+                    simplexTable.getTable(),
+                    simplexTable.getColX(),
+                    simplexTable.getRowX(),
+                    simplexTable.isMinimisation());
+            int additionalVarColumn = SimplexTable.findAdditionalVarColumn(simplexTable.getColX(), simplexTable.getN());
             if (additionalVarColumn != -1){
-                simplexTable.removeCol(additionalVarColumn);
+                simplexTable = SimplexTable.removeCol(
+                        simplexTable.getN(),
+                        simplexTable.getM(),
+                        simplexTable.getFunc(),
+                        simplexTable.getTable(),
+                        simplexTable.getColX(),
+                        simplexTable.getRowX(),
+                        simplexTable.isMinimisation(),
+                        additionalVarColumn);
             }
         }
-        simplexTable.toMainTask();
-        while (!simplexTable.isSolved() && simplexTable.hasSolution()){
-            simplexTable.simplexStep();
+        simplexTable = SimplexTable.toMainTask(
+                simplexTable.getN(),
+                simplexTable.getM(),
+                simplexTable.getFunc(),
+                simplexTable.getTable(),
+                simplexTable.getColX(),
+                simplexTable.getRowX(),
+                simplexTable.isMinimisation());
+        while (!SimplexTable.isSolved(simplexTable.getTable(), simplexTable.getN(), simplexTable.getM())
+                && SimplexTable.hasSolution(simplexTable.getTable(), simplexTable.getN(), simplexTable.getM())){
+            simplexTable = SimplexTable.simplexStep(
+                    simplexTable.getN(),
+                    simplexTable.getM(),
+                    simplexTable.getFunc(),
+                    simplexTable.getTable(),
+                    simplexTable.getColX(),
+                    simplexTable.getRowX(),
+                    simplexTable.isMinimisation());
         }
         assertThat(simplexTable.getAnswer()).isEqualTo(new Fraction("-24"));
     }

@@ -209,7 +209,8 @@ public class SimplexView {
             }
         }
 
-        if (step == curStep && task.hasSolution() && !task.isSolved()) {
+        if (step == curStep && SimplexTable.hasSolution(task.getTable(), task.getN(), task.getM())
+                && !SimplexTable.isSolved(task.getTable(), task.getN(), task.getM())) {
             ArrayList<Integer[]> elementsForStep = task.getPossibleElementsForStep();
             for (Integer[] element : elementsForStep) {
                 int rowForStep = element[0];
@@ -239,8 +240,15 @@ public class SimplexView {
             int colForStep;
             int rowForStep;
             if (curCol == -1 && curRow == -1) {
-                colForStep = task.colForSimplexStep();
-                rowForStep = task.rowForSimplexStep(colForStep);
+                colForStep = SimplexTable.colForSimplexStep(
+                        task.getTable(),
+                        task.getN(),
+                        task.getM());
+                rowForStep = SimplexTable.rowForSimplexStep(
+                        colForStep,
+                        task.getTable(),
+                        task.getN(),
+                        task.getM());
             } else {
                 colForStep = curCol;
                 rowForStep = curRow;
@@ -300,15 +308,22 @@ public class SimplexView {
     }
 
     public boolean isLastStep(){
-        return simplexSteps.get(curStep).isSolved() || !simplexSteps.get(curStep).hasSolution();
+        SimplexTable table = simplexSteps.get(curStep);
+        return SimplexTable.isSolved(table.getTable(), table.getN(), table.getM()) || !SimplexTable.hasSolution(table.getTable(), table.getN(), table.getM());
     }
 
     public boolean isTimeToDoMainTask(){
-        return curStep != 0 && simplexSteps.get(curStep - 1).hasAdditionalVars() && !simplexSteps.get(curStep).hasAdditionalVars();
+        return isTimeToDoMainTask(curStep);
     }
 
     public boolean isTimeToDoMainTask(int step){
-        return step > 0 && step <= curStep && simplexSteps.get(step - 1).hasAdditionalVars() && !simplexSteps.get(step).hasAdditionalVars();
+        if (step <= 0) {
+            return false;
+        }
+        SimplexTable prevTable = simplexSteps.get(step - 1);
+        SimplexTable stepTable = simplexSteps.get(step);
+        return curStep != 0 && SimplexTable.hasAdditionalVars(prevTable.getColX(), prevTable.getRowX())
+                && !SimplexTable.hasAdditionalVars(stepTable.getColX(), stepTable.getRowX());
     }
 
     public int getColForStep(int step) {
@@ -341,12 +356,20 @@ public class SimplexView {
         return row;
     }
 
-    public void nextStep(){
+    public void nextStep() {
         SimplexTable simplexTable = simplexSteps.get(curStep).clone();
         if (curStep != 0) {
             if (isTimeToDoMainTask()) {
-                simplexTable.toMainTask();
-                simplexSteps.add(simplexTable);
+                simplexSteps.add(
+                        SimplexTable.toMainTask(
+                                simplexTable.getN(),
+                                simplexTable.getM(),
+                                simplexTable.getFunc(),
+                                simplexTable.getTable(),
+                                simplexTable.getColX(),
+                                simplexTable.getRowX(),
+                                simplexTable.isMinimisation())
+                );
                 curStep++;
                 curCol = -1;
                 curRow = -1;
@@ -354,18 +377,42 @@ public class SimplexView {
                 return;
             }
         }
-        if (isLastStep()){
+        if (isLastStep()) {
             return;
         }
-        if (simplexSteps.get(curStep).hasAdditionalVars()) {
+        if (SimplexTable.hasAdditionalVars(simplexTable.getColX(), simplexTable.getRowX())) {
             if (curCol != -1 && curRow != -1) {
-                simplexTable.simplexStep(curRow, curCol);
+                simplexTable = SimplexTable.simplexStep(
+                        curRow,
+                        curCol,
+                        simplexTable.getN(),
+                        simplexTable.getM(),
+                        simplexTable.getFunc(),
+                        simplexTable.getTable(),
+                        simplexTable.getColX(),
+                        simplexTable.getRowX(),
+                        simplexTable.isMinimisation());
             } else {
-                simplexTable.simplexStep();
+                simplexTable = SimplexTable.simplexStep(
+                        simplexTable.getN(),
+                        simplexTable.getM(),
+                        simplexTable.getFunc(),
+                        simplexTable.getTable(),
+                        simplexTable.getColX(),
+                        simplexTable.getRowX(),
+                        simplexTable.isMinimisation());
             }
-            int additionalVarColumn = simplexTable.findAdditionalVarColumn();
-            if (additionalVarColumn != -1){
-                simplexTable.removeCol(additionalVarColumn);
+            int additionalVarColumn = SimplexTable.findAdditionalVarColumn(simplexTable.getColX(), simplexTable.getN());
+            if (additionalVarColumn != -1) {
+                simplexTable = SimplexTable.removeCol(
+                        simplexTable.getN(),
+                        simplexTable.getM(),
+                        simplexTable.getFunc(),
+                        simplexTable.getTable(),
+                        simplexTable.getColX(),
+                        simplexTable.getRowX(),
+                        simplexTable.isMinimisation(),
+                        additionalVarColumn);
             }
             simplexSteps.add(simplexTable);
             curStep++;
@@ -375,9 +422,25 @@ public class SimplexView {
             return;
         }
         if (curCol != -1 && curRow != -1) {
-            simplexTable.simplexStep(curRow, curCol);
+            simplexTable = SimplexTable.simplexStep(
+                    curRow,
+                    curCol,
+                    simplexTable.getN(),
+                    simplexTable.getM(),
+                    simplexTable.getFunc(),
+                    simplexTable.getTable(),
+                    simplexTable.getColX(),
+                    simplexTable.getRowX(),
+                    simplexTable.isMinimisation());
         } else {
-            simplexTable.simplexStep();
+            simplexTable = SimplexTable.simplexStep(
+                    simplexTable.getN(),
+                    simplexTable.getM(),
+                    simplexTable.getFunc(),
+                    simplexTable.getTable(),
+                    simplexTable.getColX(),
+                    simplexTable.getRowX(),
+                    simplexTable.isMinimisation());
         }
         simplexSteps.add(simplexTable);
         curStep++;

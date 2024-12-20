@@ -68,26 +68,32 @@ public class SimplexTable {
     }
 
     public SimplexTable(int n, int m, Fraction[] func, Fraction[][] table, int[] vars, boolean isMinimisation) {
-        this.n = n - m;
-        this.m = m;
-        this.func = func.clone();
-        this.table = Gauss.transformTable(table, n, m, vars);
-        colX = new int[n - m];
-        rowX = new int[m];
+        int newN = n - m;
+        Fraction[] newFunc = func.clone();
+        Fraction[][] newTable = Gauss.transformTable(table, n, m, vars);
+        int[] newColX = new int[n - m];
+        int[] newRowX = new int[m];
         int col = 0;
         int row = 0;
         for (int j = 1; j < n; j++) {
             int J = j;
             if (Arrays.stream(vars).filter(it -> it == J).toArray().length != 0) {
-                rowX[row] = j;
+                newRowX[row] = j;
                 row++;
             } else {
-                colX[col] = j;
+                newColX[col] = j;
                 col++;
             }
         }
+        SimplexTable newSimplexTable = toMainTask(newN, m , newFunc, newTable, newColX, newRowX, isMinimisation);
+
+        this.n = newSimplexTable.n;
+        this.m = newSimplexTable.m;
+        this.func = newSimplexTable.func.clone();
+        this.table = newSimplexTable.table.clone();
+        this.colX = newSimplexTable.colX.clone();
+        this.rowX = newSimplexTable.rowX.clone();
         this.isMinimisation = isMinimisation;
-        toMainTask();
     }
 
     /**
@@ -213,7 +219,7 @@ public class SimplexTable {
      * Если нижняя строчка неотрицательна, матрица решена
      * @return Решена ли матрица
      */
-    public boolean isSolved(){
+    static public boolean isSolved(Fraction[][] table, int n, int m){
         for (int j = 0; j < n; j++){
             if (Fraction.firstIsLess(table[m][j], Fraction.zero())){
                 return false;
@@ -226,7 +232,7 @@ public class SimplexTable {
      * Если есть столбец, состоящий полностью из отрицательных чисел, то матрица нерешаема
      * @return Возможно ли дальнейшее решение
      */
-    public boolean hasSolution(){
+    static public boolean hasSolution(Fraction[][] table, int n, int m){
         for (int j = 0; j < n; j++){
             boolean isColBad = true;
             for (int i = 0; i <= m; i++){
@@ -246,50 +252,54 @@ public class SimplexTable {
      * @param row ряд, где находится опорный элемент
      * @param col столбец, где находится опорный элемент
      */
-    public void simplexStep(int row, int col){
-        int box = colX[col];
-        colX[col] = rowX[row];
-        rowX[row] = box;
+    static public SimplexTable simplexStep(int row, int col, int n, int m, Fraction[] func, Fraction[][] table, int[] colX, int[] rowX, boolean isMinimisation){
+        Fraction [][] newTable = table.clone();
+        int[] newColX = colX.clone();
+        int[] newRowX = rowX.clone();
+        int box = newColX[col];
+        newColX[col] = newRowX[row];
+        newRowX[row] = box;
 
-        table[row][col] = Fraction.flip(table[row][col]);
+        newTable[row][col] = Fraction.flip(newTable[row][col]);
 
         for (int j = 0; j < col; j++){
-            table[row][j] = Fraction.multiply(table[row][j], table[row][col]);
+            newTable[row][j] = Fraction.multiply(newTable[row][j], newTable[row][col]);
         }
         for (int j = col + 1; j <= n; j++){
-            table[row][j] = Fraction.multiply(table[row][j], table[row][col]);
+            newTable[row][j] = Fraction.multiply(newTable[row][j], newTable[row][col]);
         }
 
         for (int i = 0; i < row; i++){
             for (int j = 0; j < col; j++){
-                table[i][j] = Fraction.subtract(table[i][j], Fraction.multiply(table[i][col], table[row][j]));
+                newTable[i][j] = Fraction.subtract(newTable[i][j], Fraction.multiply(newTable[i][col], newTable[row][j]));
             }
             for (int j = col + 1; j <= n; j++){
-                table[i][j] = Fraction.subtract(table[i][j], Fraction.multiply(table[i][col], table[row][j]));
+                newTable[i][j] = Fraction.subtract(newTable[i][j], Fraction.multiply(newTable[i][col], newTable[row][j]));
             }
         }
         for (int i = row + 1; i <= m; i++){
             for (int j = 0; j < col; j++){
-                table[i][j] = Fraction.subtract(table[i][j], Fraction.multiply(table[i][col], table[row][j]));
+                newTable[i][j] = Fraction.subtract(newTable[i][j], Fraction.multiply(newTable[i][col], newTable[row][j]));
             }
             for (int j = col + 1; j <= n; j++){
-                table[i][j] = Fraction.subtract(table[i][j], Fraction.multiply(table[i][col], table[row][j]));
+                newTable[i][j] = Fraction.subtract(newTable[i][j], Fraction.multiply(newTable[i][col], newTable[row][j]));
             }
         }
 
         for (int i = 0; i < row; i++){
-            table[i][col] = Fraction.multiply(table[i][col], Fraction.negative(table[row][col]));
+            newTable[i][col] = Fraction.multiply(newTable[i][col], Fraction.negative(newTable[row][col]));
         }
         for (int i = row + 1; i <= m; i++){
-            table[i][col] = Fraction.multiply(table[i][col], Fraction.negative(table[row][col]));
+            newTable[i][col] = Fraction.multiply(newTable[i][col], Fraction.negative(newTable[row][col]));
         }
+        return new SimplexTable(n, m, func, newTable, newColX, newRowX, isMinimisation);
     }
 
     /**
      * Находит столбец в котором находится наименьшее значение нижней строки
      * @return индекс столбца
      */
-    public int colForSimplexStep(){
+    static public int colForSimplexStep(Fraction[][] table, int n, int m){
         int col = 0;
         for (int j = 0; j < n; j++){
             if (Fraction.firstIsLess(table[m][j], table[m][col])){
@@ -304,7 +314,7 @@ public class SimplexTable {
      * @param col столбец в котором производится поиск
      * @return строка в которой находится опорный элемент для шага симплекс-метода
      */
-    public int rowForSimplexStep(int col){
+    static public int rowForSimplexStep(int col, Fraction[][] table, int n, int m){
         int row = 0;
         for (int i = 0; i < m; i++){
             if (Fraction.firstIsMore(table[i][col], Fraction.zero())) {
@@ -365,19 +375,19 @@ public class SimplexTable {
      * Шаг симплекс метода.
      * Поиск опорного элемента, выполняется симплекс-шаг вокруг него
      */
-    public void simplexStep(){
-        if (!hasSolution() || isSolved())
-            return;
-        int col = colForSimplexStep();
-        int row = rowForSimplexStep(col);
-        simplexStep(row, col);
+    static public SimplexTable simplexStep(int n, int m, Fraction[] func, Fraction[][] table, int[] colX, int[] rowX, boolean isMinimisation){
+        if (!hasSolution(table, n, m) || isSolved(table, n, m))
+            return new SimplexTable(n, m, func, table, colX, rowX, isMinimisation);
+        int col = colForSimplexStep(table, n, m);
+        int row = rowForSimplexStep(col, table, n, m);
+        return simplexStep(row, col, n, m, func, table, colX, rowX, isMinimisation);
     }
 
     /**
      * Удаление столбца из таблицы, уменьшает размерность матрицы
      * @param col индекс столбца, который нужно удалить
      */
-    public void removeCol(int col){
+    static public SimplexTable removeCol(int n, int m, Fraction[] func, Fraction[][] table, int[] colX, int[] rowX, boolean isMinimisation, int col){
         n--;                                                    //уменьшаем размерность
         Fraction[][] newTable = new Fraction[m + 1][n + 1];     //копируем данные в новую таблицу без целевого столбца
         for (int j = 0; j < col; j++){
@@ -390,18 +400,17 @@ public class SimplexTable {
                 newTable[i][j] = table[i][j + 1];
             }
         }
-        table = newTable;
         int[] newColX = new int[n];                             //копируем список переменных в заглавии столбцов без целевого
         System.arraycopy(colX, 0, newColX, 0, col);
         if (n - col >= 0) System.arraycopy(colX, col + 1, newColX, col, n - col);
-        colX = newColX;
+        return new SimplexTable(n, m, func, newTable, newColX, rowX, isMinimisation);
     }
 
     /**
      * Есть ли в матрице дополнительные переменные(для поиска базиса)
      * @return Наличие дополнительных переменных
      */
-    public boolean hasAdditionalVars(){
+    static public boolean hasAdditionalVars(int[] colX, int[] rowX){
         return Arrays.stream(colX).filter(it -> it < 0).toArray().length > 0
                 || Arrays.stream(rowX).filter(it -> it < 0).toArray().length > 0;
     }
@@ -410,7 +419,7 @@ public class SimplexTable {
      * Находит индекс столбца с дополнительной переменной(для поиска базиса)
      * @return индекс столбца, если подходящего нет, то -1
      */
-    public int findAdditionalVarColumn(){
+    static public int findAdditionalVarColumn(int[] colX, int n){
         for (int j = 0; j < n; j++){
             if (colX[j] < 0){
                 return j;
@@ -423,29 +432,47 @@ public class SimplexTable {
      * Переход к основной задаче, когда базис найден, из имеющейся матрицы и функции вычисляется нижняя строчка
      * Если есть дополнительные переменные ничего не происходит
      */
-    public void toMainTask(){
-        if (hasAdditionalVars())
-            return;
-        Fraction[] newFunc = new Fraction[func.length];
+    static public SimplexTable toMainTask(int n, int m, Fraction[] func, Fraction[][] table, int[] colX, int[] rowX, boolean isMinimisation){
+        if (hasAdditionalVars(colX, rowX))
+            return new SimplexTable(n, m, func, table, colX, rowX, isMinimisation);
+
+        Fraction[][] newTable = table.clone();
+        Fraction[] calculationFunc = getCalculationFunc(func, isMinimisation);
+        newTable = calcBottomRow(n, m, newTable, calculationFunc, rowX, colX);
+        newTable[m][n] = calcBotLeftValue(n, m, newTable, calculationFunc, rowX);
+        return new SimplexTable(n, m, func, newTable, colX, rowX, isMinimisation);
+    }
+
+    static public Fraction[] getCalculationFunc(Fraction[] func, boolean isMinimisation) {
+        Fraction[] calculationFunc = new Fraction[func.length];
         for (int i = 0; i < func.length; i++) {
             if (isMinimisation) {
-                newFunc[i] = func[i];
+                calculationFunc[i] = func[i];
             } else {
-                newFunc[i] = Fraction.negative(func[i]);
+                calculationFunc[i] = Fraction.negative(func[i]);
             }
         }
-        for (int j = 0; j < n; j++){                                        //считаем значения в нижней строке для переменных в заглавии столбцов
-            Fraction a = newFunc[colX[j]];
-            for (int i = 0; i < m; i++){
-                a = Fraction.subtract(a, Fraction.multiply(newFunc[rowX[i]], table[i][j]));
-            }
-            table[m][j] = a;
-        }
-        Fraction a = newFunc[m + n];                                       //считаем значение в нижней левой ячейке
+        return calculationFunc;
+    }
+
+    static public Fraction calcBotLeftValue(int n, int m, Fraction[][] table, Fraction[] func, int[] rowX) {
+        Fraction a = func[m + n];
         for (int i = 0; i < m; i++){
-            a = Fraction.add(a, Fraction.multiply(newFunc[rowX[i]], table[i][n]));
+            a = Fraction.add(a, Fraction.multiply(func[rowX[i]], table[i][n]));
         }
-        table[m][n] = Fraction.negative(a);
+        return Fraction.negative(a);
+    }
+
+    static public Fraction[][] calcBottomRow(int n, int m, Fraction[][] table, Fraction[] func, int[] rowX, int[] colX) {
+        Fraction[][] newTable = table.clone();
+        for (int j = 0; j < n; j++){
+            Fraction a = func[colX[j]];
+            for (int i = 0; i < m; i++){
+                a = Fraction.subtract(a, Fraction.multiply(func[rowX[i]], newTable[i][j]));
+            }
+            newTable[m][j] = a;
+        }
+        return newTable;
     }
 
     /**
@@ -468,13 +495,13 @@ public class SimplexTable {
      * Если дальнейшее решение невозможно, выводит сообщение о том, что функция неограниченна
      */
     public String getAnswerAsString(boolean isDecimal) {
-        if (!isSolved()) {
+        if (!isSolved(table, n ,m)) {
             return "";
         }
-        if (hasAdditionalVars()) {
+        if (hasAdditionalVars(colX, rowX)) {
             return "Задача несовместна";
         }
-        if (!hasSolution()) {
+        if (!hasSolution(table, n ,m)) {
             return "Функция неограниченна";
         }
         StringBuilder str = new StringBuilder("f(");
@@ -488,7 +515,7 @@ public class SimplexTable {
     }
 
     public Fraction[] getAnswerAsArray() {
-        if (!isSolved() || hasAdditionalVars() || !hasSolution()) {
+        if (!isSolved(table, n ,m) || hasAdditionalVars(colX, rowX) || !hasSolution(table, n ,m)) {
             return new Fraction[0];
         }
         Fraction[] answer = new Fraction[n + m];
