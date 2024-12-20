@@ -1,13 +1,14 @@
 package ru.ac.uniyar.Simplex.Utils;
 
 import java.util.Objects;
+import javafx.util.Pair;
 
 /**
  * Класс для работы с обыкновенными дробями и дробной арифметикой
  */
 public class Fraction {
-    private transient long num;
-    private transient long denom;
+    private final long num;
+    private final long denom;
 
     /**
      * Конструктор дроби из двух целых чисел
@@ -18,9 +19,9 @@ public class Fraction {
     public Fraction(long num, long denom){
         if (denom == 0)
             throw new NumberFormatException("Dividing by zero");
-        this.num = num;
-        this.denom = denom;
-        cut();
+        Pair<Long, Long> cutFraction = cut(num, denom);
+        this.num = cutFraction.getKey();
+        this.denom = cutFraction.getValue();
     }
 
     /**
@@ -30,29 +31,33 @@ public class Fraction {
      * @throws ArrayIndexOutOfBoundsException если неверный формат
      */
     public Fraction(String str) {
+        long num;
+        long denom;
         if (str.contains("/")) {
             String[] data = str.split("/");
             if (str.indexOf("/") != str.lastIndexOf("/")) {
                 throw new ArrayIndexOutOfBoundsException("Wrong fraction format");
             }
-            this.num = Long.parseLong(data[0]);
-            this.denom = Long.parseLong(data[1]);
+            num = Long.parseLong(data[0]);
+            denom = Long.parseLong(data[1]);
         } else {
             if (str.contains(".")) {
                 String[] data = str.split("\\.");
                 if (str.indexOf(".") != str.lastIndexOf(".")) {
                     throw new ArrayIndexOutOfBoundsException("Wrong fraction format");
                 }
-                this.num = Long.parseLong(data[0] + data[1]);
-                this.denom = (long) Math.pow(10, data[1].length());
+                num = Long.parseLong(data[0] + data[1]);
+                denom = (long) Math.pow(10, data[1].length());
             } else {
-                this.num = Long.parseLong(str);
-                this.denom = 1;
+                num = Long.parseLong(str);
+                denom = 1;
             }
         }
-        if (this.denom == 0)
+        if (denom == 0)
             throw new NumberFormatException("Dividing by zero");
-        cut();
+        Pair<Long, Long> cutFraction = cut(num, denom);
+        this.num = cutFraction.getKey();
+        this.denom = cutFraction.getValue();
     }
 
     /**
@@ -87,15 +92,19 @@ public class Fraction {
 
     /**
      * Сокращает дробь, если минус стоит в знаменателе, переносит его в числитель
+     * @param num целочисленный числитель дроби
+     * @param denom целочисленный знаменатель дроби
+     * @return Пара чисел, ключ - числитель, значение - знаменатель
      */
-    public final void cut(){
+    public Pair<Long, Long> cut(long num, long denom){
         long d = gcd(num, denom);
-        this.num /= d;
-        this.denom /= d;
-        if (this.denom < 0) {
-            this.num *= -1;
-            this.denom *= -1;
+        long newNum = num / d;
+        long newDenom = denom / d;
+        if (newDenom < 0) {
+            newNum *= -1;
+            newDenom *= -1;
         }
+        return new Pair<>(newNum, newDenom);
     }
 
     /**
@@ -120,9 +129,7 @@ public class Fraction {
      * @return сумма текущей дроби и дроби a
      */
     public Fraction plus(Fraction a){
-        Fraction sum = new Fraction(this.num * a.denom + this.denom * a.num, this.denom * a.denom);
-        sum.cut();
-        return sum;
+        return new Fraction(this.num * a.denom + this.denom * a.num, this.denom * a.denom);
     }
 
     /**
@@ -140,9 +147,7 @@ public class Fraction {
      * @return произведение текущей дроби и a
      */
     public Fraction multiply(Fraction a){
-        Fraction prod = new Fraction(this.num * a.num, this.denom * a.denom);
-        prod.cut();
-        return prod;
+        return new Fraction(this.num * a.num, this.denom * a.denom);
     }
 
     /**
@@ -188,7 +193,7 @@ public class Fraction {
     public String getFrString(boolean isDecimal) {
 
         if (isDecimal) {
-            if (this.denom == 1) {
+            if (denom == 1) {
                 return String.format("%d", num);
             } else {
                 return String.format("%.6s", toDecimal());
@@ -200,7 +205,7 @@ public class Fraction {
 
     @Override
     public String toString(){
-        if (denom ==1) {
+        if (denom == 1) {
             return String.valueOf(num);
         } else {
             return num + "/" + denom;
