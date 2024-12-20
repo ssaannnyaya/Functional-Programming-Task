@@ -60,7 +60,17 @@ public class SimplexTableTest {
         rowX2[1] = 3;
         SimplexTable simplexTable2 = new SimplexTable(n2, m2, func2, table2, colX2, rowX2, true);
 
-        simplexTable1.normalize();
+        simplexTable1 = new SimplexTable(
+                simplexTable1.getN(),
+                simplexTable1.getM(),
+                simplexTable1.getFunc(),
+                SimplexTable.normalize(
+                        simplexTable1.getN(),
+                        simplexTable1.getM(),
+                        simplexTable1.getTable()),
+                simplexTable1.getColX(),
+                simplexTable1.getRowX(),
+                simplexTable1.isMinimisation());
         assertThat(simplexTable1).isEqualTo(simplexTable2);
     }
 

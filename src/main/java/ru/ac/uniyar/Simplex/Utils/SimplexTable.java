@@ -1,7 +1,5 @@
 package ru.ac.uniyar.Simplex.Utils;
 
-import javafx.scene.control.Label;
-
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -62,11 +60,10 @@ public class SimplexTable {
         this.n = n;
         this.m = m;
         this.func = func.clone();
-        this.table = table.clone();
+        this.table = normalize(n, m, table);
         this.colX = colX.clone();
         this.rowX = rowX.clone();
         this.isMinimisation = isMinimisation;
-        normalize();
     }
 
     public SimplexTable(int n, int m, Fraction[] func, Fraction[][] table, int[] vars, boolean isMinimisation) {
@@ -200,21 +197,35 @@ public class SimplexTable {
      * Если константа в ограничении отрицательная, домножаем всю строку на -1
      * Пересчитывает нижнюю строчку
      */
-    public final void normalize(){
+    static public Fraction[][] normalize(int n, int m, Fraction[][] table){
+        Fraction[][] newTable = table.clone();
+        newTable = makeRightColPositive(n, m, newTable);
+        newTable = initBotValues(n, m, newTable);
+        return newTable;
+    }
+
+    static public Fraction[][] makeRightColPositive(int n, int m, Fraction[][] table) {
+        Fraction[][] newTable = table.clone();
         for (int i = 0; i < m; i++){
-            if (Fraction.firstIsLess(table[i][n], Fraction.zero())){
+            if (Fraction.firstIsLess(newTable[i][n], Fraction.zero())){
                 for (int j = 0; j <= n; j++){
-                    table[i][j] = Fraction.negative(table[i][j]);
+                    newTable[i][j] = Fraction.negative(newTable[i][j]);
                 }
             }
         }
+        return newTable;
+    }
+
+    static public Fraction[][] initBotValues(int n, int m, Fraction[][] table) {
+        Fraction[][] newTable = table.clone();
         for (int j = 0; j <= n ;j++){
             Fraction sum = Fraction.zero();
             for (int i = 0; i < m; i++){
-                sum = Fraction.add(sum, table[i][j]);
+                sum = Fraction.add(sum, newTable[i][j]);
             }
-            table[m][j] = Fraction.negative(sum);
+            newTable[m][j] = Fraction.negative(sum);
         }
+        return newTable;
     }
 
     /**
