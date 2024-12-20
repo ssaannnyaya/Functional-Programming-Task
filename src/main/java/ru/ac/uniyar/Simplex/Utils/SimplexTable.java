@@ -1,5 +1,7 @@
 package ru.ac.uniyar.Simplex.Utils;
 
+import javafx.scene.control.Label;
+
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -336,7 +338,7 @@ public class SimplexTable {
      * Находит координаты всех возможных опорных элементов
      * @return Список массивов, первый элемент массива - индекс сроки, второй - индекс столбца
      */
-    public ArrayList<Integer[]> getPossibleElementsForStep() {
+    static public ArrayList<Integer[]> getPossibleElementsForStep(int n, int m, Fraction[][] table) {
         ArrayList<Integer[]> possibleElements = new ArrayList<>();
         for (int j = 0; j < n; j++) {
             if (Fraction.firstIsLess(table[m][j], Fraction.zero())) {
@@ -479,7 +481,7 @@ public class SimplexTable {
      * Получение ответа на задачу линейного программирования
      * @return Значение нижнего правого элемента умноженное на -1
      */
-    public Fraction getAnswer(){
+    static public Fraction getAnswer(int n, int m, Fraction[][] table, boolean isMinimisation){
         if (isMinimisation){
             return Fraction.negative(table[m][n]);
         } else {
@@ -494,7 +496,7 @@ public class SimplexTable {
      * Если в задаче остались дополнительные переменные выводит сообщение о том, что задача несовместна
      * Если дальнейшее решение невозможно, выводит сообщение о том, что функция неограниченна
      */
-    public String getAnswerAsString(boolean isDecimal) {
+    static public String getAnswerAsString(int n, int m, Fraction[][] table, int[] colX, int[] rowX, boolean isMinimisation, boolean isDecimal) {
         if (!isSolved(table, n ,m)) {
             return "";
         }
@@ -505,16 +507,16 @@ public class SimplexTable {
             return "Функция неограниченна";
         }
         StringBuilder str = new StringBuilder("f(");
-        Fraction[] vars = getAnswerAsArray();
+        Fraction[] vars = getAnswerAsArray(n, m, table, colX, rowX);
         str.append(Fraction.getFrString(vars[0], isDecimal));
         for (int i = 1; i < n + m; i++) {
             str.append(", ").append(Fraction.getFrString(vars[i], isDecimal));
         }
-        str.append(") = ").append(Fraction.getFrString(getAnswer(), isDecimal));
+        str.append(") = ").append(Fraction.getFrString(getAnswer(n, m, table, isMinimisation), isDecimal));
         return str.toString();
     }
 
-    public Fraction[] getAnswerAsArray() {
+    static public Fraction[] getAnswerAsArray(int n, int m, Fraction[][] table, int[] colX, int[] rowX) {
         if (!isSolved(table, n ,m) || hasAdditionalVars(colX, rowX) || !hasSolution(table, n ,m)) {
             return new Fraction[0];
         }
@@ -528,7 +530,7 @@ public class SimplexTable {
         return answer;
     }
 
-    public String getFuncAsString(boolean isDecimal) {
+    static public String getFuncAsString(Fraction[] func, boolean isMinimisation, boolean isDecimal) {
         StringBuilder str = new StringBuilder();
         if (!Fraction.equals(func[0], Fraction.zero())) {
             if (Fraction.equals(func[0], Fraction.negative(Fraction.one()))) {
@@ -548,11 +550,7 @@ public class SimplexTable {
                 if (!Fraction.equals(func[i], Fraction.one())) {
                     str.append(Fraction.getFrString(func[i], isDecimal));
                 }
-                if (i > 9){
-                    str.append("x").append("\u2081").append((char) ('\u2080' + ((i + 1) % 10)));
-                } else {
-                    str.append("x").append("").append((char) ('\u2080' + ((i + 1) % 10)));
-                }
+                str.append(getIndexedX(i));
             }
             if (Fraction.firstIsLess(func[i], Fraction.zero())) {
                 if (Fraction.equals(func[i], Fraction.negative(Fraction.one()))) {
@@ -560,11 +558,7 @@ public class SimplexTable {
                 } else {
                     str.append(Fraction.getFrString(func[i], isDecimal));
                 }
-                if (i > 9){
-                    str.append("x").append("\u2081").append((char) ('\u2080' + ((i + 1) % 10)));
-                } else {
-                    str.append("x").append("").append((char) ('\u2080' + ((i + 1) % 10)));
-                }
+                str.append(getIndexedX(i));
             }
         }
         if (Fraction.firstIsMore(func[func.length - 1], Fraction.zero())) {
@@ -583,6 +577,14 @@ public class SimplexTable {
             str.append("max");
         }
         return str.toString();
+    }
+
+    static public String getIndexedX(int x) {
+        if (x > 9) {
+            return  "x" + "\u2081" + ((char) ('\u2080' + ((x + 1) % 10)));
+        } else {
+            return  "x" + "" + ((char) ('\u2080' + ((x + 1) % 10)));
+        }
     }
 
     @Override

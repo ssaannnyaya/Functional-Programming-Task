@@ -93,7 +93,11 @@ public class SimplexView {
         if (isEmpty()) {
             return new Text("");
         }
-        Text function = new Text(simplexSteps.get(0).getFuncAsString(isDecimal));
+        SimplexTable task = simplexSteps.get(0);
+        Text function = new Text(SimplexTable.getFuncAsString(
+                task.getFunc(),
+                task.isMinimisation(),
+                isDecimal));
         function.setFont(new Font(16));
         return function;
     }
@@ -130,12 +134,7 @@ public class SimplexView {
             Rectangle rectangleHigh = new Rectangle(width, high);
             rectangleHigh.setFill(Color.LIGHTGRAY);
             int x = Math.abs(task.getColX()[j]);
-            Label cellInHigh;
-            if (x > 9) {
-                cellInHigh = new Label("x" + "\u2081" + ((char) ('\u2080' + ((x + 1) % 10))));
-            } else {
-                cellInHigh = new Label("x" + "" + ((char) ('\u2080' + ((x + 1) % 10))));
-            }
+            Label cellInHigh = new Label(SimplexTable.getIndexedX(x));
             cellInHigh.setFont(new Font(16));
 
             GridPane.setHalignment(cellInHigh, HPos.CENTER);
@@ -168,12 +167,7 @@ public class SimplexView {
             rectangleLeft.setFill(Color.LIGHTGRAY);
 
             int x = Math.abs(task.getRowX()[i]);
-            Label cellInLeft;
-            if (x > 9) {
-                cellInLeft = new Label("x" + "\u2081" + ((char) ('\u2080' + ((x + 1) % 10))));
-            } else {
-                cellInLeft = new Label("x" + "" + ((char) ('\u2080' + ((x + 1) % 10))));
-            }
+            Label cellInLeft = new Label(SimplexTable.getIndexedX(x));
             cellInLeft.setFont(new Font(16));
 
             GridPane.setHalignment(cellInLeft, HPos.CENTER);
@@ -211,7 +205,7 @@ public class SimplexView {
 
         if (step == curStep && SimplexTable.hasSolution(task.getTable(), task.getN(), task.getM())
                 && !SimplexTable.isSolved(task.getTable(), task.getN(), task.getM())) {
-            ArrayList<Integer[]> elementsForStep = task.getPossibleElementsForStep();
+            ArrayList<Integer[]> elementsForStep = SimplexTable.getPossibleElementsForStep(task.getN(), task.getM(), task.getTable());
             for (Integer[] element : elementsForStep) {
                 int rowForStep = element[0];
                 int colForStep = element[1];
@@ -298,7 +292,18 @@ public class SimplexView {
             solvingSteps.getChildren().add(getTable(i));
         }
         if (!isEmpty() && !isTimeToDoMainTask()) {
-            solvingSteps.getChildren().add(new Text(simplexSteps.get(curStep).getAnswerAsString(isDecimal)));
+            SimplexTable curTable = simplexSteps.get(curStep);
+            solvingSteps.getChildren().add(new Text(
+                    SimplexTable.getAnswerAsString(
+                            curTable.getN(),
+                            curTable.getM(),
+                            curTable.getTable(),
+                            curTable.getColX(),
+                            curTable.getRowX(),
+                            curTable.isMinimisation(),
+                            isDecimal)
+                    )
+            );
         }
         return solvingSteps;
     }
@@ -312,11 +317,11 @@ public class SimplexView {
         return SimplexTable.isSolved(table.getTable(), table.getN(), table.getM()) || !SimplexTable.hasSolution(table.getTable(), table.getN(), table.getM());
     }
 
-    public boolean isTimeToDoMainTask(){
+    public boolean isTimeToDoMainTask() {
         return isTimeToDoMainTask(curStep);
     }
 
-    public boolean isTimeToDoMainTask(int step){
+    public boolean isTimeToDoMainTask(int step) {
         if (step <= 0) {
             return false;
         }

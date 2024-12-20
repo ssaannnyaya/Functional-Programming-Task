@@ -772,7 +772,12 @@ public class SimplexTableTest {
                     simplexTable1.getRowX(),
                     simplexTable1.isMinimisation());
         }
-        assertThat(simplexTable1.getAnswer()).isEqualTo(new Fraction("1/3"));
+        assertThat(SimplexTable.getAnswer(
+                simplexTable1.getN(),
+                simplexTable1.getM(),
+                simplexTable1.getTable(),
+                simplexTable1.isMinimisation()
+        )).isEqualTo(new Fraction("1/3"));
     }
 
     @Test
@@ -850,7 +855,12 @@ public class SimplexTableTest {
                     simplexTable.getRowX(),
                     simplexTable.isMinimisation());
         }
-        assertThat(simplexTable.getAnswer()).isEqualTo(new Fraction("-24"));
+        assertThat(SimplexTable.getAnswer(
+                simplexTable.getN(),
+                simplexTable.getM(),
+                simplexTable.getTable(),
+                simplexTable.isMinimisation()
+        )).isEqualTo(new Fraction("-24"));
     }
 
     @Test
