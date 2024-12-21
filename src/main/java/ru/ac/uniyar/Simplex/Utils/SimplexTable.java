@@ -7,13 +7,13 @@ import java.util.Arrays;
 import java.util.Objects;
 
 public class SimplexTable {
-    private transient int n;
-    private transient int m;
-    private transient Fraction[] func;
-    private transient Fraction[][] table; // m, i - rows; n, j - columns
-    private transient int[] colX;
-    private transient int[] rowX;
-    private boolean isMinimisation;
+    private final int n;
+    private final int m;
+    private final Fraction[] func;
+    private final Fraction[][] table; // m, i - rows; n, j - columns
+    private final int[] colX;
+    private final int[] rowX;
+    private final boolean isMinimisation;
 
     /**
      * Конструктор со всеми параметрами
@@ -100,48 +100,69 @@ public class SimplexTable {
      * @param filePath путь к файлу
      */
     public SimplexTable(String filePath) {
+        boolean isMinimisation1;
+        int[] rowX1;
+        int[] colX1;
+        Fraction[][] table1;
+        Fraction[] func1;
+        int m1;
+        int n1;
         try(BufferedReader reader = new BufferedReader(new FileReader(filePath))){
             String[] data = reader.readLine().split(" ");
-            this.n = Integer.parseInt(data[0]);
-            this.m = Integer.parseInt(data[1]);
-            this.isMinimisation = Boolean.parseBoolean(data[2]);
+            n1 = Integer.parseInt(data[0]);
+            m1 = Integer.parseInt(data[1]);
+            isMinimisation1 = Boolean.parseBoolean(data[2]);
 
-            table = new Fraction[m+1][n+1];
-            rowX = new int[m];
-            colX = new int[n];
+            table1 = new Fraction[m1 +1][n1 +1];
+            rowX1 = new int[m1];
+            colX1 = new int[n1];
             data = reader.readLine().split(" ");
-            func = new Fraction[data.length];
+            func1 = new Fraction[data.length];
             for (int j = 0; j  < data.length; j++){
-                func[j] = new Fraction(data[j]);
+                func1[j] = new Fraction(data[j]);
             }
             data = reader.readLine().split(" ");
-            for (int j = 0; j  < n; j++){
-                colX[j] = Integer.parseInt(data[j]);
+            for (int j = 0; j  < n1; j++){
+                colX1[j] = Integer.parseInt(data[j]);
             }
-            for (int i = 0; i < m; i++){
+            for (int i = 0; i < m1; i++){
                 data = reader.readLine().split(" ");
-                rowX[i] = Integer.parseInt(data[0]);
-                for (int j = 0; j  <= n; j++){
-                    table[i][j] = new Fraction(data[j+1]);
+                rowX1[i] = Integer.parseInt(data[0]);
+                for (int j = 0; j  <= n1; j++){
+                    table1[i][j] = new Fraction(data[j+1]);
                 }
             }
             data = reader.readLine().split(" ");
-            for (int j = 0; j  <= n; j++){
-                table[m][j] = new Fraction(data[j]);
+            for (int j = 0; j  <= n1; j++){
+                table1[m1][j] = new Fraction(data[j]);
             }
         }catch (IOException e){
             e.printStackTrace();
+            n1 = 0;
+            m1 = 0;
+            func1 = new Fraction[0];
+            table1 = new Fraction[0][0];
+            colX1 = new int[0];
+            rowX1 = new int[0];
+            isMinimisation1 = false;
         }
+        this.n = n1;
+        this.m = m1;
+        this.func = func1;
+        this.table = table1;
+        this.colX = colX1;
+        this.rowX = rowX1;
+        this.isMinimisation = isMinimisation1;
     }
 
     /**
      * Записать симплекс таблицу в файл
      * @param filePath путь к файлу
      */
-    public void writeToFile(String filePath){
+    static public void writeToFile(int n, int m, Fraction[] func, Fraction[][] table, int[] colX, int[] rowX, boolean isMinimisation, String filePath){
         try( Writer writer = new BufferedWriter(new OutputStreamWriter(
                 new FileOutputStream(filePath), StandardCharsets.UTF_8))) {
-            writer.write(this.toString());
+            writer.write(toString(n, m, func, table, colX, rowX, isMinimisation));
         }catch (IOException e){
             e.printStackTrace();
         }
@@ -621,28 +642,32 @@ public class SimplexTable {
         return result;
     }
 
-    @Override
-    public String toString(){
+    static public String toString(int n, int m, Fraction[] func, Fraction[][] table, int[] colX, int[] rowX, boolean isMinimisation){
         StringBuilder str = new StringBuilder(n + " " + m + " " + isMinimisation + "\n");
-        for (int j = 0; j < func.length - 1; j++){
-            str.append(Fraction.toString(func[j])).append(" ");
-        }
-        str.append(Fraction.toString(func[func.length - 1])).append("\n");
-        for (int j = 0; j < n - 1; j++){
-            str.append(colX[j]).append(" ");
-        }
-        str.append(colX[n - 1]).append("\n");
+        str.append(fractRowToString(func)).append("\n");
+        str.append(intRowToString(colX)).append("\n");
         for (int i = 0; i < m; i++){
-            str.append(rowX[i]).append(" ");
-            for (int j = 0; j < n; j++){
-                str.append(Fraction.toString(table[i][j])).append(" ");
-            }
-            str.append(Fraction.toString(table[i][n])).append("\n");
+            str.append(rowX[i]).append(" ").append(fractRowToString(table[i])).append("\n");
         }
-        for (int j = 0; j < n; j++){
-            str.append(Fraction.toString(table[m][j])).append(" ");
+        str.append(fractRowToString(table[m])).append("\n");
+        return str.toString();
+    }
+
+    static public String fractRowToString(Fraction[] row) {
+        StringBuilder str = new StringBuilder();
+        for (int j = 0; j < row.length - 1; j++){
+            str.append(Fraction.toString(row[j])).append(" ");
         }
-        str.append(Fraction.toString(table[m][n])).append("\n");
+        str.append(Fraction.toString(row[row.length - 1]));
+        return str.toString();
+    }
+
+    static public String intRowToString(int[] row) {
+        StringBuilder str = new StringBuilder();
+        for (int j = 0; j < row.length - 1; j++){
+            str.append(row[j]).append(" ");
+        }
+        str.append(row[row.length - 1]);
         return str.toString();
     }
 

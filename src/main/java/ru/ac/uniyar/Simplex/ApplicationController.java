@@ -31,13 +31,11 @@ public class ApplicationController {
     }
 
     public void showSimplex() {
-        if (root.getCenter() == null) {
-            clearPane();
-            if (simplexView == null || simplexView.isEmpty()) {
-                return;
-            }
-            root.setCenter(simplexView.getPane());
+        clearPane();
+        if (simplexView == null || simplexView.isEmpty()) {
+            return;
         }
+        root.setCenter(simplexView.getPane());
         createDecimalButton();
     }
 
@@ -159,7 +157,16 @@ public class ApplicationController {
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("TXT files (*.txt)", "*.txt"));
         File file = fileChooser.showSaveDialog(fileStage);
         if (file != null) {
-            simplexView.getProblem().writeToFile(file.getPath());
+            SimplexTable task = simplexView.getProblem();
+            SimplexTable.writeToFile(
+                    task.getN(),
+                    task.getM(),
+                    task.getFunc(),
+                    task.getTable(),
+                    task.getColX(),
+                    task.getRowX(),
+                    task.isMinimisation(),
+                    file.getPath());
         }
     }
 }

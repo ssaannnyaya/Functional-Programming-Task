@@ -900,7 +900,15 @@ public class SimplexTableTest {
         SimplexTable simplexTable = new SimplexTable(n, m, func, table, colX, rowX, true);
         String file = "src/test/resources/test.txt";
 
-        simplexTable.writeToFile(file);
+        SimplexTable.writeToFile(
+                simplexTable.getN(),
+                simplexTable.getM(),
+                simplexTable.getFunc(),
+                simplexTable.getTable(),
+                simplexTable.getColX(),
+                simplexTable.getRowX(),
+                simplexTable.isMinimisation()
+                ,file);
         SimplexTable newSimplexTable = new SimplexTable(file);
         assertThat(newSimplexTable).isEqualTo(simplexTable);
         try{
