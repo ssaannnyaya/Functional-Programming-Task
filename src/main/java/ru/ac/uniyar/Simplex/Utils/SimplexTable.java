@@ -48,15 +48,8 @@ public class SimplexTable {
      * @param isMinimisation если true - задача минимизации, если false - максимизации
      */
     public SimplexTable(int n, int m, Fraction[] func, Fraction[][] table, boolean isMinimisation){
-        int[] colX = new int[n];
-        int[] rowX = new int[m];
-        for (int j = 0; j < n; j++){
-            colX[j] = j;
-        }
-        for (int i = 0; i < m; i++){
-            rowX[i] = -(n + i);
-        }
-
+        int[] colX = getPrimaryVars(n);
+        int[] rowX = getAdditionalVars(n, m);
         this.n = n;
         this.m = m;
         this.func = func.clone();
@@ -66,24 +59,27 @@ public class SimplexTable {
         this.isMinimisation = isMinimisation;
     }
 
+    static public int[] getPrimaryVars(int n) {
+        int[] colX = new int[n];
+        for (int j = 0; j < n; j++){
+            colX[j] = j;
+        }
+        return colX;
+    }
+    static public int[] getAdditionalVars(int n, int m) {
+        int[] rowX = new int[m];
+        for (int i = 0; i < m; i++){
+            rowX[i] = -(n + i);
+        }
+        return rowX;
+    }
+
     public SimplexTable(int n, int m, Fraction[] func, Fraction[][] table, int[] vars, boolean isMinimisation) {
         int newN = n - m;
         Fraction[] newFunc = func.clone();
         Fraction[][] newTable = Gauss.transformTable(table, n, m, vars);
-        int[] newColX = new int[n - m];
-        int[] newRowX = new int[m];
-        int col = 0;
-        int row = 0;
-        for (int j = 1; j < n; j++) {
-            int J = j;
-            if (Arrays.stream(vars).filter(it -> it == J).toArray().length != 0) {
-                newRowX[row] = j;
-                row++;
-            } else {
-                newColX[col] = j;
-                col++;
-            }
-        }
+        int[] newColX = getColVars(n, m, vars);
+        int[] newRowX = vars.clone();
         SimplexTable newSimplexTable = toMainTask(newN, m , newFunc, newTable, newColX, newRowX, isMinimisation);
 
         this.n = newSimplexTable.n;
@@ -93,6 +89,19 @@ public class SimplexTable {
         this.colX = newSimplexTable.colX.clone();
         this.rowX = newSimplexTable.rowX.clone();
         this.isMinimisation = isMinimisation;
+    }
+
+    static public int[] getColVars(int n, int m, int[] vars) {
+        int[] newColX = new int[n - m];
+        int col = 0;
+        for (int j = 1; j < n; j++) {
+            int J = j;
+            if (Arrays.stream(vars).noneMatch(it -> it == J)) {
+                newColX[col] = j;
+                col++;
+            }
+        }
+        return newColX;
     }
 
     /**
@@ -294,39 +303,42 @@ public class SimplexTable {
         newColX[col] = newRowX[row];
         newRowX[row] = box;
 
-        newTable[row][col] = Fraction.flip(newTable[row][col]);
+        newTable = transformPivotCol(n, row, col, newTable);
+        newTable = transformTableWithSimplexStep(n, m, row, col, newTable);
+        newTable = transformPivotRow(m, row, col, newTable);
 
-        for (int j = 0; j < col; j++){
-            newTable[row][j] = Fraction.multiply(newTable[row][j], newTable[row][col]);
-        }
-        for (int j = col + 1; j <= n; j++){
-            newTable[row][j] = Fraction.multiply(newTable[row][j], newTable[row][col]);
-        }
-
-        for (int i = 0; i < row; i++){
-            for (int j = 0; j < col; j++){
-                newTable[i][j] = Fraction.subtract(newTable[i][j], Fraction.multiply(newTable[i][col], newTable[row][j]));
-            }
-            for (int j = col + 1; j <= n; j++){
-                newTable[i][j] = Fraction.subtract(newTable[i][j], Fraction.multiply(newTable[i][col], newTable[row][j]));
-            }
-        }
-        for (int i = row + 1; i <= m; i++){
-            for (int j = 0; j < col; j++){
-                newTable[i][j] = Fraction.subtract(newTable[i][j], Fraction.multiply(newTable[i][col], newTable[row][j]));
-            }
-            for (int j = col + 1; j <= n; j++){
-                newTable[i][j] = Fraction.subtract(newTable[i][j], Fraction.multiply(newTable[i][col], newTable[row][j]));
-            }
-        }
-
-        for (int i = 0; i < row; i++){
-            newTable[i][col] = Fraction.multiply(newTable[i][col], Fraction.negative(newTable[row][col]));
-        }
-        for (int i = row + 1; i <= m; i++){
-            newTable[i][col] = Fraction.multiply(newTable[i][col], Fraction.negative(newTable[row][col]));
-        }
         return new SimplexTable(n, m, func, newTable, newColX, newRowX, isMinimisation);
+    }
+
+    static public Fraction[][] transformPivotCol(int n, int row, int col, Fraction[][] table) {
+        Fraction[][] newTable = table.clone();
+        newTable[row][col] = Fraction.flip(newTable[row][col]);
+        for (int j = 0; j <= n; j++){
+            if (j == col) continue;
+            newTable[row][j] = Fraction.multiply(newTable[row][j], newTable[row][col]);
+        }
+        return newTable;
+    }
+
+    static public Fraction[][] transformTableWithSimplexStep(int n, int m, int row, int col, Fraction[][] table) {
+        Fraction[][] newTable = table.clone();
+        for (int i = 0; i <= m; i++){
+            if (i == row) continue;
+            for (int j = 0; j <= n; j++){
+                if (j == col) continue;
+                newTable[i][j] = Fraction.subtract(newTable[i][j], Fraction.multiply(newTable[i][col], newTable[row][j]));
+            }
+        }
+        return newTable;
+    }
+
+    static public Fraction[][] transformPivotRow(int m, int row, int col, Fraction[][] table) {
+        Fraction[][] newTable = table.clone();
+        for (int i = 0; i <= m; i++){
+            if (i == row) continue;
+            newTable[i][col] = Fraction.multiply(newTable[i][col], Fraction.negative(newTable[row][col]));
+        }
+        return newTable;
     }
 
     /**
@@ -428,21 +440,25 @@ public class SimplexTable {
      */
     static public SimplexTable removeCol(int n, int m, Fraction[] func, Fraction[][] table, int[] colX, int[] rowX, boolean isMinimisation, int col){
         n--;                                                    //уменьшаем размерность
-        Fraction[][] newTable = new Fraction[m + 1][n + 1];     //копируем данные в новую таблицу без целевого столбца
-        for (int j = 0; j < col; j++){
-            for (int i = 0; i <= m; i++){
-                newTable[i][j] = table[i][j];
-            }
-        }
-        for (int j = col; j <= n; j++){
-            for (int i = 0; i <= m; i++){
-                newTable[i][j] = table[i][j + 1];
-            }
-        }
+        Fraction[][] newTable = removeColFromTable(n, m, table.clone(), col);
         int[] newColX = new int[n];                             //копируем список переменных в заглавии столбцов без целевого
         System.arraycopy(colX, 0, newColX, 0, col);
         if (n - col >= 0) System.arraycopy(colX, col + 1, newColX, col, n - col);
         return new SimplexTable(n, m, func, newTable, newColX, rowX, isMinimisation);
+    }
+
+    static public Fraction[][] removeColFromTable(int n, int m, Fraction[][] table, int col) {
+        Fraction[][] newTable = new Fraction[m + 1][n + 1];     //копируем данные в новую таблицу без целевого столбца
+        int offset = 0;
+        for (int j = 0; j <= n; j++){
+            if (j == col) {
+                offset ++;
+            }
+            for (int i = 0; i <= m; i++){
+                newTable[i][j] = table[i][j + offset];
+            }
+        }
+        return newTable;
     }
 
     /**
@@ -648,14 +664,10 @@ public class SimplexTable {
     }
 
     static public String toString(int n, int m, Fraction[] func, Fraction[][] table, int[] colX, int[] rowX, boolean isMinimisation){
-        StringBuilder str = new StringBuilder(n + " " + m + " " + isMinimisation + "\n");
-        str.append(fractRowToString(func)).append("\n");
-        str.append(intRowToString(colX)).append("\n");
-        for (int i = 0; i < m; i++){
-            str.append(rowX[i]).append(" ").append(fractRowToString(table[i])).append("\n");
-        }
-        str.append(fractRowToString(table[m])).append("\n");
-        return str.toString();
+        return n + " " + m + " " + isMinimisation + "\n" + fractRowToString(func) +
+                intRowToString(colX) +
+                tableWithVarsToString(m, table, rowX) +
+                fractRowToString(table[m]);
     }
 
     static public String fractRowToString(Fraction[] row) {
@@ -663,7 +675,7 @@ public class SimplexTable {
         for (int j = 0; j < row.length - 1; j++){
             str.append(Fraction.toString(row[j])).append(" ");
         }
-        str.append(Fraction.toString(row[row.length - 1]));
+        str.append(Fraction.toString(row[row.length - 1])).append("\n");
         return str.toString();
     }
 
@@ -672,7 +684,15 @@ public class SimplexTable {
         for (int j = 0; j < row.length - 1; j++){
             str.append(row[j]).append(" ");
         }
-        str.append(row[row.length - 1]);
+        str.append(row[row.length - 1]).append("\n");
+        return str.toString();
+    }
+
+    static public String tableWithVarsToString(int m, Fraction[][] table, int[] rowX) {
+        StringBuilder str = new StringBuilder();
+        for (int i = 0; i < m; i++){
+            str.append(rowX[i]).append(" ").append(fractRowToString(table[i]));
+        }
         return str.toString();
     }
 
