@@ -148,10 +148,10 @@ public class SimplexTable {
         }
         this.n = n1;
         this.m = m1;
-        this.func = func1;
-        this.table = table1;
-        this.colX = colX1;
-        this.rowX = rowX1;
+        this.func = func1.clone();
+        this.table = table1.clone();
+        this.colX = colX1.clone();
+        this.rowX = rowX1.clone();
         this.isMinimisation = isMinimisation1;
     }
 
@@ -191,15 +191,15 @@ public class SimplexTable {
     }
 
     public Fraction[] getFunc() {
-        return func;
+        return func.clone();
     }
 
     public int[] getColX() {
-        return colX;
+        return colX.clone();
     }
 
     public int[] getRowX() {
-        return rowX;
+        return rowX.clone();
     }
 
     public int getN() {
@@ -370,7 +370,7 @@ public class SimplexTable {
      * Находит координаты всех возможных опорных элементов
      * @return Список массивов, первый элемент массива - индекс сроки, второй - индекс столбца
      */
-    static public ArrayList<Integer[]> getPossibleElementsForStep(int n, int m, Fraction[][] table) {
+    static public int[][] getPossibleElementsForStep(int n, int m, Fraction[][] table) {
         ArrayList<Integer[]> possibleElements = new ArrayList<>();
         for (int j = 0; j < n; j++) {
             if (Fraction.firstIsLess(table[m][j], Fraction.zero())) {
@@ -402,7 +402,12 @@ public class SimplexTable {
                 }
             }
         }
-        return possibleElements;
+        int[][] newElements = new int[possibleElements.size()][2];
+        for (int i = 0; i < possibleElements.size(); i++) {
+            newElements[i][0] = possibleElements.get(i)[0];
+            newElements[i][1] = possibleElements.get(i)[1];
+        }
+        return newElements.clone();
     }
 
     /**
