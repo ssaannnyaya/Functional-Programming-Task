@@ -303,19 +303,23 @@ public class SimplexTable {
         newColX[col] = newRowX[row];
         newRowX[row] = box;
 
-        newTable = transformPivotCol(n, row, col, newTable);
+        newTable[row][col] = Fraction.flip(newTable[row][col]);
+        newTable = transformPivotLine(n, row, col, newTable, false);
         newTable = transformTableWithSimplexStep(n, m, row, col, newTable);
-        newTable = transformPivotRow(m, row, col, newTable);
+        newTable = transformPivotLine(m, row, col, newTable, true);
 
         return new SimplexTable(n, m, func, newTable, newColX, newRowX, isMinimisation);
     }
 
-    static public Fraction[][] transformPivotCol(int n, int row, int col, Fraction[][] table) {
+    static public Fraction[][] transformPivotLine(int n, int row, int col, Fraction[][] table, boolean isRow) {
         Fraction[][] newTable = table.clone();
-        newTable[row][col] = Fraction.flip(newTable[row][col]);
-        for (int j = 0; j <= n; j++){
-            if (j == col) continue;
-            newTable[row][j] = Fraction.multiply(newTable[row][j], newTable[row][col]);
+        for (int i = 0; i <= n; i++){
+            if ((i == row && isRow) || (i == col && !isRow)) continue;
+            if (isRow) {
+                newTable[i][col] = Fraction.multiply(table[i][col], Fraction.negative(table[row][col]));
+            } else {
+                newTable[row][i] = Fraction.multiply(table[row][i], table[row][col]);
+            }
         }
         return newTable;
     }
@@ -328,15 +332,6 @@ public class SimplexTable {
                 if (j == col) continue;
                 newTable[i][j] = Fraction.subtract(newTable[i][j], Fraction.multiply(newTable[i][col], newTable[row][j]));
             }
-        }
-        return newTable;
-    }
-
-    static public Fraction[][] transformPivotRow(int m, int row, int col, Fraction[][] table) {
-        Fraction[][] newTable = table.clone();
-        for (int i = 0; i <= m; i++){
-            if (i == row) continue;
-            newTable[i][col] = Fraction.multiply(newTable[i][col], Fraction.negative(newTable[row][col]));
         }
         return newTable;
     }
@@ -664,34 +659,33 @@ public class SimplexTable {
     }
 
     static public String toString(int n, int m, Fraction[] func, Fraction[][] table, int[] colX, int[] rowX, boolean isMinimisation){
-        return n + " " + m + " " + isMinimisation + "\n" + fractRowToString(func) +
-                intRowToString(colX) +
+        return n + " " + m + " " + isMinimisation + "\n" + rowToString(func) +
+                rowToString(Arrays.stream(colX.clone()).boxed().toArray( Integer[]::new )) +
                 tableWithVarsToString(m, table, rowX) +
-                fractRowToString(table[m]);
+                rowToString(table[m]);
     }
 
-    static public String fractRowToString(Fraction[] row) {
+    static public String rowToString(Object[] row) {
         StringBuilder str = new StringBuilder();
         for (int j = 0; j < row.length - 1; j++){
-            str.append(Fraction.toString(row[j])).append(" ");
+            str.append(objToString(row[j])).append(" ");
         }
-        str.append(Fraction.toString(row[row.length - 1])).append("\n");
+        str.append(objToString(row[row.length - 1])).append("\n");
         return str.toString();
     }
 
-    static public String intRowToString(int[] row) {
-        StringBuilder str = new StringBuilder();
-        for (int j = 0; j < row.length - 1; j++){
-            str.append(row[j]).append(" ");
+    static public String objToString(Object obj) {
+        if (obj.getClass() == Fraction.class) {
+            return Fraction.toString((Fraction)obj);
+        } else {
+            return obj.toString();
         }
-        str.append(row[row.length - 1]).append("\n");
-        return str.toString();
     }
 
     static public String tableWithVarsToString(int m, Fraction[][] table, int[] rowX) {
         StringBuilder str = new StringBuilder();
         for (int i = 0; i < m; i++){
-            str.append(rowX[i]).append(" ").append(fractRowToString(table[i]));
+            str.append(rowX[i]).append(" ").append(rowToString(table[i]));
         }
         return str.toString();
     }
