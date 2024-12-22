@@ -258,36 +258,40 @@ public class SimplexTable {
         return newTable;
     }
 
-    /**
-     * Если нижняя строчка неотрицательна, матрица решена
-     * @return Решена ли матрица
-     */
-    static public boolean isSolved(Fraction[][] table, int n, int m){
-        for (int j = 0; j < n; j++){
-            if (Fraction.firstIsLess(table[m][j], Fraction.zero())){
-                return false;
-            }
-        }
-        return true;
+    @FunctionalInterface
+    public interface Function3Args<A, B, C, R>  {
+        R apply(A a, B b, C c);
     }
 
-    /**
-     * Если есть столбец, состоящий полностью из отрицательных чисел, то матрица нерешаема
-     * @return Возможно ли дальнейшее решение
-     */
-    static public boolean hasSolution(Fraction[][] table, int n, int m){
-        for (int j = 0; j < n; j++){
-            boolean isColBad = true;
-            for (int i = 0; i <= m; i++){
-                if (Fraction.firstIsMore(table[i][j], Fraction.zero())){
-                    isColBad = false;
+    @FunctionalInterface
+    public interface Function4Args<A, B, C, D, R>  {
+        R apply(A a, B b, C c, D d);
+    }
+
+    static public Function3Args<Fraction[][], Integer, Integer, Boolean> isSolved = checkSolution(
+            (Fraction[][] table, Integer n, Integer m, Integer j) -> !Fraction.firstIsLess(table[m][j], Fraction.zero())
+    );
+
+    static public Function3Args<Fraction[][], Integer, Integer, Boolean> hasSolution = checkSolution(
+            (Fraction[][] table, Integer n, Integer m, Integer j) ->  {
+                boolean isColBad = true;
+                for (int i = 0; i <= m; i++){
+                    if (Fraction.firstIsMore(table[i][j], Fraction.zero())){
+                        isColBad = false;
+                    }
+                }
+                return !isColBad;
+            });
+
+    static public Function3Args<Fraction[][], Integer, Integer, Boolean> checkSolution(Function4Args<Fraction[][], Integer, Integer, Integer, Boolean> checker) {
+        return (Fraction[][] table, Integer n, Integer m) -> {
+            for (int j = 0; j < n; j++){
+                if (!(Boolean) checker.apply(table, n, m, j)) {
+                    return false;
                 }
             }
-            if (isColBad){
-                return false;
-            }
-        }
-        return true;
+            return true;
+        };
     }
 
     /**
@@ -422,7 +426,7 @@ public class SimplexTable {
      * Поиск опорного элемента, выполняется симплекс-шаг вокруг него
      */
     static public SimplexTable simplexStep(int n, int m, Fraction[] func, Fraction[][] table, int[] colX, int[] rowX, boolean isMinimisation){
-        if (!hasSolution(table, n, m) || isSolved(table, n, m))
+        if (!hasSolution.apply(table, n, m) || isSolved.apply(table, n, m))
             return new SimplexTable(n, m, func, table, colX, rowX, isMinimisation);
         int col = colForSimplexStep(table, n, m);
         int row = rowForSimplexStep(col, table, n, m);
@@ -545,13 +549,13 @@ public class SimplexTable {
      * Если дальнейшее решение невозможно, выводит сообщение о том, что функция неограниченна
      */
     static public String getAnswerAsString(int n, int m, Fraction[][] table, int[] colX, int[] rowX, boolean isMinimisation, boolean isDecimal) {
-        if (!isSolved(table, n ,m)) {
+        if (!isSolved.apply(table, n ,m)) {
             return "";
         }
         if (hasAdditionalVars(colX, rowX)) {
             return "Задача несовместна";
         }
-        if (!hasSolution(table, n ,m)) {
+        if (!hasSolution.apply(table, n ,m)) {
             return "Функция неограниченна";
         }
         StringBuilder str = new StringBuilder("f(");
@@ -565,7 +569,7 @@ public class SimplexTable {
     }
 
     static public Fraction[] getAnswerAsArray(int n, int m, Fraction[][] table, int[] colX, int[] rowX) {
-        if (!isSolved(table, n ,m) || hasAdditionalVars(colX, rowX) || !hasSolution(table, n ,m)) {
+        if (!isSolved.apply(table, n ,m) || hasAdditionalVars(colX, rowX) || !hasSolution.apply(table, n ,m)) {
             return new Fraction[0];
         }
         Fraction[] answer = new Fraction[n + m];

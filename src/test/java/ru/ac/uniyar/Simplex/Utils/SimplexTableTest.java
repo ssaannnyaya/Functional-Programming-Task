@@ -99,7 +99,7 @@ public class SimplexTableTest {
         rowX[0] = 2;
         rowX[1] = 3;
         SimplexTable simplexTable = new SimplexTable(n, m, func, table, colX, rowX, true);
-        assertThat(SimplexTable.isSolved(simplexTable.getTable(), simplexTable.getN(), simplexTable.getM())).isTrue();
+        assertThat(SimplexTable.isSolved.apply(simplexTable.getTable(), simplexTable.getN(), simplexTable.getM())).isTrue();
     }
 
     @Test
@@ -127,7 +127,7 @@ public class SimplexTableTest {
         rowX[0] = 2;
         rowX[1] = 3;
         SimplexTable simplexTable = new SimplexTable(n, m, func, table, colX, rowX, true);
-        assertThat(SimplexTable.isSolved(simplexTable.getTable(), simplexTable.getN(), simplexTable.getM())).isTrue();
+        assertThat(SimplexTable.isSolved.apply(simplexTable.getTable(), simplexTable.getN(), simplexTable.getM())).isTrue();
     }
 
     @Test
@@ -155,7 +155,7 @@ public class SimplexTableTest {
         rowX[0] = 2;
         rowX[1] = 3;
         SimplexTable simplexTable = new SimplexTable(n, m, func, table, colX, rowX, true);
-        assertThat(SimplexTable.isSolved(simplexTable.getTable(), simplexTable.getN(), simplexTable.getM())).isFalse();
+        assertThat(SimplexTable.isSolved.apply(simplexTable.getTable(), simplexTable.getN(), simplexTable.getM())).isFalse();
     }
 
     @Test
@@ -183,7 +183,7 @@ public class SimplexTableTest {
         rowX[0] = 2;
         rowX[1] = 3;
         SimplexTable simplexTable = new SimplexTable(n, m, func, table, colX, rowX, true);
-        assertThat(SimplexTable.hasSolution(simplexTable.getTable(), simplexTable.getN(), simplexTable.getM())).isTrue();
+        assertThat(SimplexTable.hasSolution.apply(simplexTable.getTable(), simplexTable.getN(), simplexTable.getM())).isTrue();
     }
 
     @Test
@@ -211,7 +211,7 @@ public class SimplexTableTest {
         rowX[0] = 2;
         rowX[1] = 3;
         SimplexTable simplexTable = new SimplexTable(n, m, func, table, colX, rowX, true);
-        assertThat(SimplexTable.hasSolution(simplexTable.getTable(), simplexTable.getN(), simplexTable.getM())).isFalse();
+        assertThat(SimplexTable.hasSolution.apply(simplexTable.getTable(), simplexTable.getN(), simplexTable.getM())).isFalse();
     }
 
     @Test
@@ -739,8 +739,8 @@ public class SimplexTableTest {
         table1[1][4] = new Fraction("4");
         SimplexTable simplexTable1 = new SimplexTable(n1, m1, func1, table1, true);
 
-        while (!SimplexTable.isSolved(simplexTable1.getTable(), simplexTable1.getN(), simplexTable1.getM())
-                && SimplexTable.hasSolution(simplexTable1.getTable(), simplexTable1.getN(), simplexTable1.getM())
+        while (!SimplexTable.isSolved.apply(simplexTable1.getTable(), simplexTable1.getN(), simplexTable1.getM())
+                && SimplexTable.hasSolution.apply(simplexTable1.getTable(), simplexTable1.getN(), simplexTable1.getM())
                 && SimplexTable.hasAdditionalVars(simplexTable1.getColX(), simplexTable1.getRowX())){
             simplexTable1 = SimplexTable.simplexStep(
                     simplexTable1.getN(),
@@ -771,8 +771,8 @@ public class SimplexTableTest {
                 simplexTable1.getColX(),
                 simplexTable1.getRowX(),
                 simplexTable1.isMinimisation());
-        while (!SimplexTable.isSolved(simplexTable1.getTable(), simplexTable1.getN(), simplexTable1.getM())
-                && SimplexTable.hasSolution(simplexTable1.getTable(), simplexTable1.getN(), simplexTable1.getM())){
+        while (!SimplexTable.isSolved.apply(simplexTable1.getTable(), simplexTable1.getN(), simplexTable1.getM())
+                && SimplexTable.hasSolution.apply(simplexTable1.getTable(), simplexTable1.getN(), simplexTable1.getM())){
             simplexTable1 = SimplexTable.simplexStep(
                     simplexTable1.getN(),
                     simplexTable1.getM(),
@@ -822,8 +822,8 @@ public class SimplexTableTest {
         table[2][5] = new Fraction("12");
         SimplexTable simplexTable = new SimplexTable(n, m, func, table, true);
 
-        while (!SimplexTable.isSolved(simplexTable.getTable(), simplexTable.getN(), simplexTable.getM())
-                && SimplexTable.hasSolution(simplexTable.getTable(), simplexTable.getN(), simplexTable.getM())
+        while (!SimplexTable.isSolved.apply(simplexTable.getTable(), simplexTable.getN(), simplexTable.getM())
+                && SimplexTable.hasSolution.apply(simplexTable.getTable(), simplexTable.getN(), simplexTable.getM())
                 && SimplexTable.hasAdditionalVars(simplexTable.getColX(), simplexTable.getRowX())){
             simplexTable = SimplexTable.simplexStep(
                     simplexTable.getN(),
@@ -854,8 +854,8 @@ public class SimplexTableTest {
                 simplexTable.getColX(),
                 simplexTable.getRowX(),
                 simplexTable.isMinimisation());
-        while (!SimplexTable.isSolved(simplexTable.getTable(), simplexTable.getN(), simplexTable.getM())
-                && SimplexTable.hasSolution(simplexTable.getTable(), simplexTable.getN(), simplexTable.getM())){
+        while (!SimplexTable.isSolved.apply(simplexTable.getTable(), simplexTable.getN(), simplexTable.getM())
+                && SimplexTable.hasSolution.apply(simplexTable.getTable(), simplexTable.getN(), simplexTable.getM())){
             simplexTable = SimplexTable.simplexStep(
                     simplexTable.getN(),
                     simplexTable.getM(),

@@ -203,8 +203,8 @@ public class SimplexView {
             }
         }
 
-        if (step == curStep && SimplexTable.hasSolution(task.getTable(), task.getN(), task.getM())
-                && !SimplexTable.isSolved(task.getTable(), task.getN(), task.getM())) {
+        if (step == curStep && SimplexTable.hasSolution.apply(task.getTable(), task.getN(), task.getM())
+                && !SimplexTable.isSolved.apply(task.getTable(), task.getN(), task.getM())) {
             int[][] elementsForStep = SimplexTable.getPossibleElementsForStep(task.getN(), task.getM(), task.getTable());
             for (int[] element : elementsForStep) {
                 int rowForStep = element[0];
@@ -314,7 +314,7 @@ public class SimplexView {
 
     public boolean isLastStep(){
         SimplexTable table = simplexSteps.get(curStep);
-        return SimplexTable.isSolved(table.getTable(), table.getN(), table.getM()) || !SimplexTable.hasSolution(table.getTable(), table.getN(), table.getM());
+        return SimplexTable.isSolved.apply(table.getTable(), table.getN(), table.getM()) || !SimplexTable.hasSolution.apply(table.getTable(), table.getN(), table.getM());
     }
 
     public boolean isTimeToDoMainTask() {
