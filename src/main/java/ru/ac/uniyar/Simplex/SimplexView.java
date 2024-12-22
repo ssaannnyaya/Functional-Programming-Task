@@ -205,8 +205,8 @@ public class SimplexView {
 
         if (step == curStep && SimplexTable.hasSolution.apply(task.getTable(), task.getN(), task.getM())
                 && !SimplexTable.isSolved.apply(task.getTable(), task.getN(), task.getM())) {
-            int[][] elementsForStep = SimplexTable.getPossibleElementsForStep(task.getN(), task.getM(), task.getTable());
-            for (int[] element : elementsForStep) {
+            Integer[][] elementsForStep = SimplexTable.getPossibleElementsForStep(task.getN(), task.getM(), task.getTable());
+            for (Integer[] element : elementsForStep) {
                 int rowForStep = element[0];
                 int colForStep = element[1];
                 Rectangle rectangle = new Rectangle(width, high);

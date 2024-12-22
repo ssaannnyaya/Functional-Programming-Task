@@ -124,16 +124,10 @@ public class SimplexTable {
 
             table1 = new Fraction[m1 +1][n1 +1];
             rowX1 = new int[m1];
-            colX1 = new int[n1];
             data = reader.readLine().split(" ");
-            func1 = new Fraction[data.length];
-            for (int j = 0; j  < data.length; j++){
-                func1[j] = new Fraction(data[j]);
-            }
+            func1 = Arrays.stream(data).map(Fraction::new).toArray(Fraction[]::new);
             data = reader.readLine().split(" ");
-            for (int j = 0; j  < n1; j++){
-                colX1[j] = Integer.parseInt(data[j]);
-            }
+            colX1 = Arrays.stream(data).mapToInt(Integer::parseInt).toArray();
             for (int i = 0; i < m1; i++){
                 data = reader.readLine().split(" ");
                 rowX1[i] = Integer.parseInt(data[0]);
@@ -142,9 +136,7 @@ public class SimplexTable {
                 }
             }
             data = reader.readLine().split(" ");
-            for (int j = 0; j  <= n1; j++){
-                table1[m1][j] = new Fraction(data[j]);
-            }
+            table1[m1] = Arrays.stream(data).map(Fraction::new).toArray(Fraction[]::new);
         }catch (IOException e){
             e.printStackTrace();
             n1 = 0;
@@ -238,9 +230,7 @@ public class SimplexTable {
         Fraction[][] newTable = table.clone();
         for (int i = 0; i < m; i++){
             if (Fraction.firstIsLess(newTable[i][n], Fraction.zero())){
-                for (int j = 0; j <= n; j++){
-                    newTable[i][j] = Fraction.negative(newTable[i][j]);
-                }
+                newTable[i] = Arrays.stream(newTable[i]).map(Fraction::negative).toArray(Fraction[]::new);
             }
         }
         return newTable;
@@ -273,15 +263,7 @@ public class SimplexTable {
     );
 
     static public Function3Args<Fraction[][], Integer, Integer, Boolean> hasSolution = checkSolution(
-            (Fraction[][] table, Integer n, Integer m, Integer j) ->  {
-                boolean isColBad = true;
-                for (int i = 0; i <= m; i++){
-                    if (Fraction.firstIsMore(table[i][j], Fraction.zero())){
-                        isColBad = false;
-                    }
-                }
-                return !isColBad;
-            });
+            (Fraction[][] table, Integer n, Integer m, Integer j) -> Arrays.stream(table).anyMatch(it -> Fraction.firstIsMore(it[j], Fraction.zero())));
 
     static public Function3Args<Fraction[][], Integer, Integer, Boolean> checkSolution(Function4Args<Fraction[][], Integer, Integer, Integer, Boolean> checker) {
         return (Fraction[][] table, Integer n, Integer m) -> {
@@ -381,7 +363,7 @@ public class SimplexTable {
      * Находит координаты всех возможных опорных элементов
      * @return Список массивов, первый элемент массива - индекс сроки, второй - индекс столбца
      */
-    static public int[][] getPossibleElementsForStep(int n, int m, Fraction[][] table) {
+    static public Integer[][] getPossibleElementsForStep(int n, int m, Fraction[][] table) {
         ArrayList<Integer[]> possibleElements = new ArrayList<>();
         for (int j = 0; j < n; j++) {
             if (Fraction.firstIsLess(table[m][j], Fraction.zero())) {
@@ -413,11 +395,7 @@ public class SimplexTable {
                 }
             }
         }
-        int[][] newElements = new int[possibleElements.size()][2];
-        for (int i = 0; i < possibleElements.size(); i++) {
-            newElements[i][0] = possibleElements.get(i)[0];
-            newElements[i][1] = possibleElements.get(i)[1];
-        }
+        Integer[][] newElements = possibleElements.toArray(Integer[][]::new);
         return newElements.clone();
     }
 
@@ -465,8 +443,7 @@ public class SimplexTable {
      * @return Наличие дополнительных переменных
      */
     static public boolean hasAdditionalVars(int[] colX, int[] rowX){
-        return Arrays.stream(colX).filter(it -> it < 0).toArray().length > 0
-                || Arrays.stream(rowX).filter(it -> it < 0).toArray().length > 0;
+        return Arrays.stream(colX).anyMatch(it -> it < 0) || Arrays.stream(rowX).anyMatch(it -> it < 0);
     }
 
     /**
@@ -498,15 +475,7 @@ public class SimplexTable {
     }
 
     static public Fraction[] getCalculationFunc(Fraction[] func, boolean isMinimisation) {
-        Fraction[] calculationFunc = new Fraction[func.length];
-        for (int i = 0; i < func.length; i++) {
-            if (isMinimisation) {
-                calculationFunc[i] = func[i];
-            } else {
-                calculationFunc[i] = Fraction.negative(func[i]);
-            }
-        }
-        return calculationFunc;
+        return Arrays.stream(func).map(it -> isMinimisation ? it : Fraction.negative(it)).toArray(Fraction[]::new);
     }
 
     static public Fraction calcBotLeftValue(int n, int m, Fraction[][] table, Fraction[] func, int[] rowX) {
@@ -573,9 +542,7 @@ public class SimplexTable {
             return new Fraction[0];
         }
         Fraction[] answer = new Fraction[n + m];
-        for (int j = 0; j < n; j++) {
-            answer[colX[j]] = Fraction.zero();
-        }
+        Arrays.stream(colX).forEach(it -> answer[it] = Fraction.zero());
         for (int i = 0; i < m; i++) {
             answer[rowX[i]] = table[i][n];
         }

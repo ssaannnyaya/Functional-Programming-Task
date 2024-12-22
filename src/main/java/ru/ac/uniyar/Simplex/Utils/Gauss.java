@@ -3,11 +3,9 @@ package ru.ac.uniyar.Simplex.Utils;
 import java.util.Arrays;
 
 public class Gauss {
-    static public Fraction[][] divideRow(Fraction[][] table, int n, int row, Fraction divider) {
+    static public Fraction[][] divideRow(Fraction[][] table, int row, Fraction divider) {
         Fraction[][] newTable = table.clone();
-        for (int j = 0; j <= n; j++) {
-            newTable[row][j] = Fraction.divide(newTable[row][j], divider);
-        }
+        newTable[row] = Arrays.stream(newTable[row]).map(it -> Fraction.divide(it, divider)).toArray(Fraction[]::new);
         return newTable;
     }
 
@@ -42,7 +40,7 @@ public class Gauss {
         for (int j = 0; j < vars.length; j++) {
             int row = getNonZeroRow(table, m, j, vars[j]);
             if (!Fraction.equals(newTable[row][vars[j]], Fraction.zero())) {
-                newTable = divideRow(newTable, n, row, newTable[row][vars[j]]);
+                newTable = divideRow(newTable, row, newTable[row][vars[j]]);
                 for (int i = 0; i < m; i++) {
                     if (i == row) continue;
                     newTable = subtractionRowsWithMultiplier(newTable, n, row, i, newTable[i][vars[j]]);
