@@ -29,7 +29,7 @@ public class SimplexTable {
         this.n = n;
         this.m = m;
         this.func = func.clone();
-        this.table = table.clone();
+        this.table = cloneTable(table);
         this.colX = colX.clone();
         this.rowX = rowX.clone();
         this.isMinimisation = isMinimisation;
@@ -85,10 +85,18 @@ public class SimplexTable {
         this.n = newSimplexTable.n;
         this.m = newSimplexTable.m;
         this.func = newSimplexTable.func.clone();
-        this.table = newSimplexTable.table.clone();
+        this.table = cloneTable(newSimplexTable.table);
         this.colX = newSimplexTable.colX.clone();
         this.rowX = newSimplexTable.rowX.clone();
         this.isMinimisation = isMinimisation;
+    }
+
+    static public Fraction[][] cloneTable(Fraction[][] table) {
+        Fraction[][] newTable = table.clone();
+        for (int i = 0; i < newTable.length; i++) {
+            newTable[i] = table[i].clone();
+        }
+        return newTable;
     }
 
     static public int[] getColVars(int n, int m, int[] vars) {
@@ -220,14 +228,14 @@ public class SimplexTable {
      * Пересчитывает нижнюю строчку
      */
     static public Fraction[][] normalize(int n, int m, Fraction[][] table){
-        Fraction[][] newTable = table.clone();
+        Fraction[][] newTable = cloneTable(table);
         newTable = makeRightColPositive(n, m, newTable);
         newTable = initBotValues(n, m, newTable);
         return newTable;
     }
 
     static public Fraction[][] makeRightColPositive(int n, int m, Fraction[][] table) {
-        Fraction[][] newTable = table.clone();
+        Fraction[][] newTable = cloneTable(table);
         for (int i = 0; i < m; i++){
             if (Fraction.firstIsLess(newTable[i][n], Fraction.zero())){
                 newTable[i] = Arrays.stream(newTable[i]).map(Fraction::negative).toArray(Fraction[]::new);
@@ -237,7 +245,7 @@ public class SimplexTable {
     }
 
     static public Fraction[][] initBotValues(int n, int m, Fraction[][] table) {
-        Fraction[][] newTable = table.clone();
+        Fraction[][] newTable = cloneTable(table);
         for (int j = 0; j <= n ;j++){
             Fraction sum = Fraction.zero();
             for (int i = 0; i < m; i++){
@@ -282,7 +290,7 @@ public class SimplexTable {
      * @param col столбец, где находится опорный элемент
      */
     static public SimplexTable simplexStep(int row, int col, int n, int m, Fraction[] func, Fraction[][] table, int[] colX, int[] rowX, boolean isMinimisation){
-        Fraction [][] newTable = table.clone();
+        Fraction [][] newTable = cloneTable(table);
         int[] newColX = colX.clone();
         int[] newRowX = rowX.clone();
         int box = newColX[col];
@@ -298,7 +306,7 @@ public class SimplexTable {
     }
 
     static public Fraction[][] transformPivotLine(int n, int row, int col, Fraction[][] table, boolean isRow) {
-        Fraction[][] newTable = table.clone();
+        Fraction[][] newTable = cloneTable(table);
         for (int i = 0; i <= n; i++){
             if ((i == row && isRow) || (i == col && !isRow)) continue;
             if (isRow) {
@@ -311,7 +319,7 @@ public class SimplexTable {
     }
 
     static public Fraction[][] transformTableWithSimplexStep(int n, int m, int row, int col, Fraction[][] table) {
-        Fraction[][] newTable = table.clone();
+        Fraction[][] newTable = cloneTable(table);
         for (int i = 0; i <= m; i++){
             if (i == row) continue;
             for (int j = 0; j <= n; j++){
@@ -417,7 +425,7 @@ public class SimplexTable {
      */
     static public SimplexTable removeCol(int n, int m, Fraction[] func, Fraction[][] table, int[] colX, int[] rowX, boolean isMinimisation, int col){
         n--;                                                    //уменьшаем размерность
-        Fraction[][] newTable = removeColFromTable(n, m, table.clone(), col);
+        Fraction[][] newTable = removeColFromTable(n, m, cloneTable(table), col);
         int[] newColX = new int[n];                             //копируем список переменных в заглавии столбцов без целевого
         System.arraycopy(colX, 0, newColX, 0, col);
         if (n - col >= 0) System.arraycopy(colX, col + 1, newColX, col, n - col);
@@ -467,7 +475,7 @@ public class SimplexTable {
         if (hasAdditionalVars(colX, rowX))
             return new SimplexTable(n, m, func, table, colX, rowX, isMinimisation);
 
-        Fraction[][] newTable = table.clone();
+        Fraction[][] newTable = cloneTable(table);
         Fraction[] calculationFunc = getCalculationFunc(func, isMinimisation);
         newTable = calcBottomRow(n, m, newTable, calculationFunc, rowX, colX);
         newTable[m][n] = calcBotLeftValue(n, m, newTable, calculationFunc, rowX);
@@ -487,7 +495,7 @@ public class SimplexTable {
     }
 
     static public Fraction[][] calcBottomRow(int n, int m, Fraction[][] table, Fraction[] func, int[] rowX, int[] colX) {
-        Fraction[][] newTable = table.clone();
+        Fraction[][] newTable = cloneTable(table);
         for (int j = 0; j < n; j++){
             Fraction a = func[colX[j]];
             for (int i = 0; i < m; i++){

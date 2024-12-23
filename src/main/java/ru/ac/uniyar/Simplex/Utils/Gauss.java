@@ -2,15 +2,17 @@ package ru.ac.uniyar.Simplex.Utils;
 
 import java.util.Arrays;
 
+import static ru.ac.uniyar.Simplex.Utils.SimplexTable.cloneTable;
+
 public class Gauss {
     static public Fraction[][] divideRow(Fraction[][] table, int row, Fraction divider) {
-        Fraction[][] newTable = table.clone();
+        Fraction[][] newTable = cloneTable(table);
         newTable[row] = Arrays.stream(newTable[row]).map(it -> Fraction.divide(it, divider)).toArray(Fraction[]::new);
         return newTable;
     }
 
     static public Fraction[][] subtractionRowsWithMultiplier(Fraction[][] table, int n, int source, int dest, Fraction multiplier) {
-        Fraction[][] newTable = table.clone();
+        Fraction[][] newTable = cloneTable(table);
         for (int j = 0; j <= n; j++) {
             newTable[dest][j] = Fraction.subtract(newTable[dest][j], Fraction.multiply(newTable[source][j], multiplier));
         }
@@ -18,7 +20,7 @@ public class Gauss {
     }
 
     static public Fraction[][] switchRows(Fraction[][] table, int n, int row1, int row2) {
-        Fraction[][] newTable = table.clone();
+        Fraction[][] newTable = cloneTable(table);
         for (int j = 0; j <= n; j++) {
             Fraction box = newTable[row1][j];
             newTable[row1][j] = newTable[row2][j];
@@ -36,7 +38,7 @@ public class Gauss {
     }
 
     static public Fraction[][] calculateByVars(Fraction[][] table, int n, int m, int[] vars) {
-        Fraction[][] newTable = table.clone();
+        Fraction[][] newTable = cloneTable(table);
         for (int j = 0; j < vars.length; j++) {
             int row = getNonZeroRow(table, m, j, vars[j]);
             if (!Fraction.equals(newTable[row][vars[j]], Fraction.zero())) {
@@ -68,7 +70,7 @@ public class Gauss {
     }
 
     static public Fraction[][] transformTable(Fraction[][] table, int n, int m, int[] vars) {
-        Fraction[][] newTable = table.clone();
+        Fraction[][] newTable = cloneTable(table);
         newTable = calculateByVars(newTable, n, m, vars);
         return getTableWithoutVars(newTable, n, m, vars);
     }
